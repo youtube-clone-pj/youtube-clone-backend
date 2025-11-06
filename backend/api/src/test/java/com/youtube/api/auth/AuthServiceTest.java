@@ -35,7 +35,11 @@ class AuthServiceTest extends IntegrationTest {
                     latch.countDown();
                     latch.await();
 
-                    sut.signUp(new RegisterRequest("testname" + index, "test@test.com", "testpassword"));
+                    sut.signUp(new RegisterRequest(
+                            "testname" + index,
+                            "test@test.com",
+                            "testpassword",
+                            "https://example.com/profile.jpg"));
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();

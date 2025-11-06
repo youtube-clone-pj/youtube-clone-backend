@@ -1,7 +1,7 @@
 package com.youtube.api.config;
 
 import com.youtube.core.testfixtures.support.DatabaseCleanup;
-import com.youtube.core.testfixtures.support.SpringBootTestSupport;
+import com.youtube.core.testfixtures.support.TestPersistSupport;
 import com.youtube.core.testfixtures.support.TestContainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,5 +30,5 @@ public abstract class IntegrationTest extends TestContainer {
     }
 
     @Autowired
-    protected SpringBootTestSupport testSupport;
+    protected TestPersistSupport testSupport;
 }
