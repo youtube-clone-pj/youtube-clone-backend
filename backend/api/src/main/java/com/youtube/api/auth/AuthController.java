@@ -14,6 +14,7 @@ public class AuthController {
 
     private final AuthService authService;
     private static final String SESSION_USER_ID = "userId";
+    private static final String SESSION_USERNAME = "username";
 
     @PostMapping("/users")
     public ResponseEntity<Long> signUp(@RequestBody RegisterRequest request) {
@@ -25,6 +26,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(@RequestBody final LoginRequest request, final HttpSession session) {
         final LoginResponse response = authService.login(request);
         session.setAttribute(SESSION_USER_ID, response.getUserId());
+        session.setAttribute(SESSION_USERNAME, response.getUsername());
 
         return ResponseEntity.ok(response);
     }

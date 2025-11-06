@@ -12,12 +12,13 @@ public class UserWriter {
 
     private final UserRepository userRepository;
 
-    public Long write(final String username, final String email, final String password) {
+    public Long write(final String username, final String email, final String password, final String profileImageUrl) {
         final Long newUserId = userRepository.save(
                 User.builder()
                         .username(username)
                         .email(email)
                         .password(password)
+                        .profileImageUrl(profileImageUrl)
                         .build()
         ).getId();
 

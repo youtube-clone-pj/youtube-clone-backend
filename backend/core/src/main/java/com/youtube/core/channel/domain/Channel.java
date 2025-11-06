@@ -1,32 +1,30 @@
-package com.youtube.core.user.domain;
+package com.youtube.core.channel.domain;
 
 import com.youtube.core.common.BaseEntity;
+import com.youtube.core.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "users")
+@Table(name = "channel")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-public class User extends BaseEntity {
+public class Channel extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String username;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false)
-    private String password;
+    private String channelName;
 
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    @Column(nullable = false)
+    private String description;
     private String profileImageUrl;
+    private String bannerImageUrl;
 }
