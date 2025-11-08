@@ -1,19 +1,22 @@
 package com.youtube.live.interaction.livestreaming.controller;
 
-import com.youtube.live.interaction.config.WebSocketConfig;
+import com.youtube.live.interaction.config.StompPrincipal;
 import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageRequest;
 import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageResponse;
+import com.youtube.live.interaction.livestreaming.controller.dto.ErrorResponse;
 import com.youtube.live.interaction.livestreaming.service.LiveStreamingChatService;
 import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingChatInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 
 @Controller
@@ -21,36 +24,37 @@ import java.time.LocalDateTime;
 @Slf4j
 public class WebSocketChatController {
 
-    private final SimpMessagingTemplate messagingTemplate;
     private final LiveStreamingChatService liveStreamingChatService;
 
     @MessageMapping("/chat/rooms/{roomId}/messages")
-    public void sendMessage(@DestinationVariable final Long roomId, @Payload final ChatMessageRequest chatMessageRequest,
-                            final SimpMessageHeaderAccessor headerAccessor) {
-        final Long sessionUserId = (Long) headerAccessor.getSessionAttributes().get("userId");
-        final String sessionUsername = (String) headerAccessor.getSessionAttributes().get("username");
-
-        if (sessionUserId == null || sessionUsername == null) {
-            log.warn("채팅 메시지 전송 실패 - 세션 정보 없음, roomId: {}", roomId);
-            return;
-        }
+    @SendTo("/topic/room/{roomId}")
+    public ChatMessageResponse sendMessage(@DestinationVariable final Long roomId,
+                                           @Payload final ChatMessageRequest chatMessageRequest,
+                                           final Principal principal) {
+        final StompPrincipal stompPrincipal = (StompPrincipal) principal;
+        final Long userId = stompPrincipal.getUserId();
+        final String username = stompPrincipal.getUsername();
 
         final LiveStreamingChatInfo savedChatInfo = liveStreamingChatService.sendMessage(
                 roomId,
-                sessionUserId,
+                userId,
                 chatMessageRequest.getMessage(),
                 chatMessageRequest.getChatMessageType()
         );
 
-        final ChatMessageResponse response = new ChatMessageResponse(
-                sessionUsername,
+        return new ChatMessageResponse(
+                username,
                 chatMessageRequest.getMessage(),
                 chatMessageRequest.getChatMessageType(),
                 savedChatInfo.getUserProfileImageUrl(),
                 LocalDateTime.now()
         );
-
-        messagingTemplate.convertAndSend(WebSocketConfig.Destinations.getRoomTopic(roomId), response);
     }
 
+    @MessageExceptionHandler
+    @SendToUser(value = "/queue/errors", broadcast = false)
+    public ErrorResponse handleException(final Exception exception) {
+        log.warn("채팅 메시지 처리 실패 - error: {}", exception.getMessage());
+        return new ErrorResponse(exception.getMessage());
+    }
 }

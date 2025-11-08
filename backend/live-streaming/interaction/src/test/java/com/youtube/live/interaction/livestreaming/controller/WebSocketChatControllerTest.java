@@ -7,6 +7,7 @@ import com.youtube.live.interaction.config.WebSocketConfig;
 import com.youtube.live.interaction.config.WebSocketStompTest;
 import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageRequest;
 import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageResponse;
+import com.youtube.live.interaction.livestreaming.controller.dto.ErrorResponse;
 import com.youtube.live.interaction.livestreaming.domain.ChatMessageType;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreaming;
 import com.youtube.live.interaction.support.TestStompSession;
@@ -23,6 +24,7 @@ import static com.youtube.core.testfixtures.builder.ChannelBuilder.*;
 import static com.youtube.live.interaction.builder.LiveStreamingBuilder.*;
 import static com.youtube.live.interaction.config.WebSocketConfig.Destinations.getRoomTopic;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 
 @Slf4j
@@ -206,44 +208,12 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
     }
 
     @Test
-    @DisplayName("세션 정보가 없으면 메시지 전송이 실패하고 브로드캐스트되지 않는다")
-    void sendMessageWithoutSession() throws ExecutionException, InterruptedException, TimeoutException {
-        // given
-        Long userId = TestAuthSupport.signUp(
-                        "test@example.com",
-                        "테스트 유저",
-                        "password!")
-                .as(Long.class);
-
-        Channel savedChannel = testSupport.save(
-                Channel().withUser(UserBuilder.User().withId(userId).build()).build()
-        );
-        LiveStreaming savedLiveStreaming = testSupport.save(
-                LiveStreaming().withChannel(savedChannel).build()
-        );
-
-        // 세션 정보 없이 WebSocket 연결 (jsessionId를 null로 전달)
-        final TestStompSession<ChatMessageResponse> testSession = TestStompSession.connect(wsUrl, null);
-
-        // 방 구독
-        final String roomTopic = getRoomTopic(savedLiveStreaming.getId());
-        testSession.subscribe(roomTopic, ChatMessageResponse.class);
-
-        // when: 메시지 전송 시도
-        final ChatMessageRequest request = new ChatMessageRequest();
-        request.setMessage("This should not be broadcasted");
-        request.setChatMessageType(ChatMessageType.CHAT);
-
-        testSession.send(
-                WebSocketConfig.Destinations.APP_PREFIX + "/chat/rooms/" + savedLiveStreaming.getId() + "/messages",
-                request
-        );
-
-        // then: 메시지가 브로드캐스트되지 않음
-        final List<ChatMessageResponse> receivedMessages = testSession.getReceivedMessages(roomTopic);
-        assertThat(receivedMessages).isEmpty();
-
-        testSession.disconnect();
+    @DisplayName("세션 정보가 없으면 WebSocket 연결이 실패한다")
+    void connectWithoutSession() {
+        // given: 세션 정보 없이 WebSocket 연결 시도 (jsessionId를 null로 전달)
+        // when & then: 인터셉터에서 인증 실패로 연결이 타임아웃됨
+        assertThatThrownBy(() -> TestStompSession.connect(wsUrl, null))
+                .isInstanceOf(TimeoutException.class);
     }
 
     @Test
@@ -293,5 +263,94 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
                 });
 
         testSession.disconnect();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 라이브 스트리밍에 메시지 전송 시 에러 응답을 받는다")
+    void sendMessageToNonExistentRoom() throws ExecutionException, InterruptedException, TimeoutException {
+        // given
+        Long userId = TestAuthSupport.signUp(
+                        "test@example.com",
+                        "테스트 유저",
+                        "password!")
+                .as(Long.class);
+
+        final String jsessionId = TestAuthSupport.login("test@example.com", "password!");
+        final TestStompSession<ErrorResponse> testSession = TestStompSession.connect(wsUrl, jsessionId);
+
+        // 에러 큐 구독 (@SendToUser는 /user prefix가 자동으로 붙음)
+        testSession.subscribe("/user/queue/errors", ErrorResponse.class);
+
+        // when: 존재하지 않는 roomId로 메시지 전송
+        final Long nonExistentRoomId = 999999L;
+        final ChatMessageRequest request = new ChatMessageRequest();
+        request.setMessage("This should fail");
+        request.setChatMessageType(ChatMessageType.CHAT);
+
+        testSession.send(
+                WebSocketConfig.Destinations.APP_PREFIX + "/chat/rooms/" + nonExistentRoomId + "/messages",
+                request
+        );
+
+        // then: 에러 응답을 받음
+        await().atMost(Duration.ofSeconds(2))
+                .untilAsserted(() -> {
+                    final List<ErrorResponse> errors = testSession.getReceivedMessages("/user/queue/errors");
+                    assertThat(errors).hasSize(1);
+                    assertThat(errors.get(0).getMessage()).isNotNull();
+                    assertThat(errors.get(0).getTimestamp()).isNotNull();
+                });
+
+        testSession.disconnect();
+    }
+
+    @Test
+    @DisplayName("broadcast=false: 에러가 발생한 세션만 에러 메시지를 받는다")
+    void errorMessageSentToOnlyTheSessionThatCausedError() throws ExecutionException, InterruptedException, TimeoutException {
+        // given: 같은 사용자로 두 개의 WebSocket 세션 연결
+        TestAuthSupport.signUp(
+                        "test@example.com",
+                        "테스트 유저",
+                        "password!")
+                .as(Long.class);
+
+        final String jsessionId1 = TestAuthSupport.login("test@example.com", "password!");
+        final String jsessionId2 = TestAuthSupport.login("test@example.com", "password!");
+
+        final TestStompSession<ErrorResponse> session1 = TestStompSession.connect(wsUrl, jsessionId1);
+        final TestStompSession<ErrorResponse> session2 = TestStompSession.connect(wsUrl, jsessionId2);
+
+        // 두 세션 모두 에러 큐 구독
+        final String errorQueue = "/user/queue/errors";
+        session1.subscribe(errorQueue, ErrorResponse.class);
+        session2.subscribe(errorQueue, ErrorResponse.class);
+
+        // when: 세션1에서만 에러를 발생시킴 (존재하지 않는 방에 메시지 전송)
+        final Long nonExistentRoomId = 999999L;
+        final ChatMessageRequest request = new ChatMessageRequest();
+        request.setMessage("This should fail");
+        request.setChatMessageType(ChatMessageType.CHAT);
+
+        session1.send(
+                WebSocketConfig.Destinations.APP_PREFIX + "/chat/rooms/" + nonExistentRoomId + "/messages",
+                request
+        );
+
+        // then: 세션1만 에러 메시지를 받고, 세션2는 받지 않음 (broadcast=false)
+        await().atMost(Duration.ofSeconds(2))
+                .untilAsserted(() -> {
+                    final List<ErrorResponse> session1Errors = session1.getReceivedMessages(errorQueue);
+                    final List<ErrorResponse> session2Errors = session2.getReceivedMessages(errorQueue);
+
+                    // 세션1은 에러를 받음
+                    assertThat(session1Errors).hasSize(1);
+                    assertThat(session1Errors.get(0).getMessage()).isNotNull();
+
+                    // 세션2는 에러를 받지 않음 (broadcast=false이므로)
+                    assertThat(session2Errors).isEmpty();
+                });
+
+        session1.disconnect();
+        session2.disconnect();
     }
 }

@@ -1,6 +1,7 @@
 package com.youtube.live.interaction.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -23,6 +24,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      * SimpleBroker를 활성화하여 구독 관리 및 메시지 라우팅을 자동으로 처리합니다.
      * - "/topic" 접두사: 클라이언트가 구독할 수 있는 목적지 (예: /topic/room/1)
      *   SimpleBroker가 자동으로 구독자를 관리하고 브로드캐스트합니다.
+     * - "/queue" 접두사: 개별 사용자에게 메시지를 전송할 때 사용 (예: /user/queue/errors)
+     *   @SendToUser 어노테이션과 함께 사용됩니다.
      * - "/app" 접두사: 클라이언트가 서버의 @MessageMapping 메서드로 메시지를 전송할 때 사용
      *   (예: /app/chat/rooms/1/messages → @MessageMapping("/chat/rooms/{roomId}/messages"))
      *
@@ -31,7 +34,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      */
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker(Destinations.TOPIC_PREFIX);
+        config.enableSimpleBroker(Destinations.TOPIC_PREFIX, Destinations.QUEUE_PREFIX);
         config.setApplicationDestinationPrefixes(Destinations.APP_PREFIX);
         config.setPreservePublishOrder(true);
     }
@@ -63,11 +66,23 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     /**
+     * 클라이언트 인바운드 채널에 인터셉터를 등록합니다.
+     *
+     * WebSocketAuthInterceptor를 등록하여 STOMP CONNECT 메시지에서
+     * 인증 정보를 검증하고 Principal을 설정합니다.
+     */
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(new WebSocketAuthInterceptor());
+    }
+
+    /**
      * WebSocket 관련 경로들을 관리하는 상수 클래스
      */
     public static class Destinations {
         // Broker prefixes
         public static final String TOPIC_PREFIX = "/topic";
+        public static final String QUEUE_PREFIX = "/queue";
         public static final String APP_PREFIX = "/app";
 
         // WebSocket endpoint
