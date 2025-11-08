@@ -9,8 +9,6 @@ import lombok.*;
 @Table(name = "live_streaming_chat")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
 public class LiveStreamingChat extends BaseEntity {
 
     @Id
@@ -31,4 +29,14 @@ public class LiveStreamingChat extends BaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private ChatMessageType messageType;
+
+    @Builder
+    private LiveStreamingChat(Long id, LiveStreaming liveStreaming, User user, String message, ChatMessageType messageType) {
+        LiveStreamingChatPolicy.validate(liveStreaming.getStatus());
+        this.id = id;
+        this.liveStreaming = liveStreaming;
+        this.user = user;
+        this.message = message;
+        this.messageType = messageType;
+    }
 }

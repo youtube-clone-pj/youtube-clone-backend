@@ -18,7 +18,7 @@ public class LiveStreamingBuilder {
     private String title = "테스트 라이브 스트리밍";
     private String description = "테스트 라이브 스트리밍 설명";
     private String thumbnailUrl = "https://example.com/thumbnail.jpg";
-    private LiveStreamingStatus status = LiveStreamingStatus.SCHEDULED;
+    private LiveStreamingStatus status = LiveStreamingStatus.LIVE;
 
     public static LiveStreamingBuilder LiveStreaming() {
         return new LiveStreamingBuilder();

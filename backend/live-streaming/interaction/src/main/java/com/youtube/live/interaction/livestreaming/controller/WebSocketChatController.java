@@ -35,7 +35,7 @@ public class WebSocketChatController {
             return;
         }
 
-        final LiveStreamingChatInfo savedChatInfo = liveStreamingChatService.save(
+        final LiveStreamingChatInfo savedChatInfo = liveStreamingChatService.sendMessage(
                 roomId,
                 sessionUserId,
                 chatMessageRequest.getMessage(),

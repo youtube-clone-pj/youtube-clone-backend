@@ -17,8 +17,8 @@ public class LiveStreamingChatService {
     private final LiveStreamingChatWriter liveStreamingChatWriter;
 
     @Transactional
-    public LiveStreamingChatInfo save(final Long liveStreamingId, final Long userId, final String message,
-                                      final ChatMessageType messageType) {
+    public LiveStreamingChatInfo sendMessage(final Long liveStreamingId, final Long userId, final String message,
+                                             final ChatMessageType messageType) {
         final LiveStreaming liveStreaming = liveStreamingReader.readBy(liveStreamingId);
         final User user = userReader.readBy(userId);
 
