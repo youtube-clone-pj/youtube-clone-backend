@@ -24,6 +24,7 @@ class AuthControllerTest extends RestAssuredTest {
         params.put("username", "testuser");
         params.put("email", "test@test.com");
         params.put("password", "testpassword");
+        params.put("profileImageUrl", "https://example.com/profile.jpg");
 
         //when
         ExtractableResponse<Response> response = given().log().all().
@@ -53,6 +54,7 @@ class AuthControllerTest extends RestAssuredTest {
         signUpParams.put("username", username);
         signUpParams.put("email", email);
         signUpParams.put("password", password);
+        signUpParams.put("profileImageUrl", "https://example.com/profile.jpg");
 
         ExtractableResponse<Response> signUpResponse = given().log().all().
                 contentType(MediaType.APPLICATION_JSON_VALUE).

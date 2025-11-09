@@ -1,0 +1,20 @@
+package com.youtube.live.interaction.livestreaming.controller.dto;
+
+import com.youtube.live.interaction.livestreaming.domain.ChatMessageType;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ChatMessageResponse {
+
+    private String username;
+    private String message;
+    private ChatMessageType chatMessageType;
+    private String userProfileImageUrl;
+    private LocalDateTime timestamp;
+}

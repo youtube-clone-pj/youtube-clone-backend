@@ -24,7 +24,8 @@ public class AuthService {
         return userWriter.write(
                 request.getUsername(),
                 request.getEmail(),
-                PasswordEncoder.encode(request.getPassword())
+                PasswordEncoder.encode(request.getPassword()),
+                request.getProfileImageUrl()
         );
     }
 
