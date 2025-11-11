@@ -13,7 +13,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(
         classes = com.youtube.live.interaction.InteractionTestApplication.class,
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"spring.task.scheduling.enabled=false"}
 )
 @ActiveProfiles("websocket-test")
 public abstract class WebSocketStompTest extends TestContainer {
