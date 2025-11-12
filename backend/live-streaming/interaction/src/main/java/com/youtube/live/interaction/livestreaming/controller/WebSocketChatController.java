@@ -1,6 +1,7 @@
 package com.youtube.live.interaction.livestreaming.controller;
 
-import com.youtube.live.interaction.config.StompPrincipal;
+import com.youtube.live.interaction.websocket.auth.AuthUser;
+import com.youtube.live.interaction.websocket.auth.LoginUser;
 import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageRequest;
 import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageResponse;
 import com.youtube.live.interaction.livestreaming.controller.dto.ErrorResponse;
@@ -16,7 +17,6 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
-import java.security.Principal;
 import java.time.LocalDateTime;
 
 @Controller
@@ -30,10 +30,10 @@ public class WebSocketChatController {
     @SendTo("/topic/room/{roomId}")
     public ChatMessageResponse sendMessage(@DestinationVariable final Long roomId,
                                            @Payload final ChatMessageRequest chatMessageRequest,
-                                           final Principal principal) {
-        final StompPrincipal stompPrincipal = (StompPrincipal) principal;
-        final Long userId = stompPrincipal.getUserId();
-        final String username = stompPrincipal.getUsername();
+                                           @AuthUser LoginUser loginUser
+    ) {
+        final Long userId = loginUser.getUserId();
+        final String username = loginUser.getUsername();
 
         final LiveStreamingChatInfo savedChatInfo = liveStreamingChatService.sendMessage(
                 roomId,

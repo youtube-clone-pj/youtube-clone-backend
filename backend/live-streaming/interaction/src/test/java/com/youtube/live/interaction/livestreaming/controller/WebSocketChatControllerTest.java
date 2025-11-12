@@ -24,7 +24,6 @@ import static com.youtube.core.testfixtures.builder.ChannelBuilder.*;
 import static com.youtube.live.interaction.builder.LiveStreamingBuilder.*;
 import static com.youtube.live.interaction.config.WebSocketConfig.Destinations.getRoomTopic;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 
 @Slf4j
@@ -208,12 +207,14 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
     }
 
     @Test
-    @DisplayName("세션 정보가 없으면 WebSocket 연결이 실패한다")
-    void connectWithoutSession() {
-        // given: 세션 정보 없이 WebSocket 연결 시도 (jsessionId를 null로 전달)
-        // when & then: 인터셉터에서 인증 실패로 연결이 타임아웃됨
-        assertThatThrownBy(() -> TestStompSession.connect(wsUrl, null))
-                .isInstanceOf(TimeoutException.class);
+    @DisplayName("인증되지 않은 사용자도 WebSocket 연결에 성공한다")
+    void connectWithoutSessionSucceeds() throws ExecutionException, InterruptedException, TimeoutException {
+        // given & when
+        final TestStompSession<ChatMessageResponse> testSession = TestStompSession.connect(wsUrl, null);
+        // then
+        assertThat(testSession).isNotNull();
+
+        testSession.disconnect();
     }
 
     @Test

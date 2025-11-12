@@ -1,16 +1,13 @@
-package com.youtube.live.interaction.config;
+package com.youtube.live.interaction.websocket.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.security.Principal;
 
-/**
- * STOMP 메시지에서 사용자 정보를 담는 Principal 구현체
- */
 @Getter
 @AllArgsConstructor
-public class StompPrincipal implements Principal {
+public class AuthenticatedPrincipal implements Principal {
 
     private final Long userId;
     private final String username;

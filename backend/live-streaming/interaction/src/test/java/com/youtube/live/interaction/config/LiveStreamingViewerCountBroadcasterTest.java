@@ -7,6 +7,7 @@ import com.youtube.core.testfixtures.builder.UserBuilder;
 import com.youtube.live.interaction.builder.LiveStreamingBuilder;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreaming;
 import com.youtube.live.interaction.support.TestStompSession;
+import com.youtube.live.interaction.websocket.event.LiveStreamingViewerCountBroadcaster;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
