@@ -27,7 +27,7 @@ public class WebSocketChatController {
     private final LiveStreamingChatService liveStreamingChatService;
 
     @MessageMapping("/chat/rooms/{roomId}/messages")
-    @SendTo("/topic/room/{roomId}")
+    @SendTo("/topic/chat/rooms/{roomId}/messages")
     public ChatMessageResponse sendMessage(@DestinationVariable final Long roomId,
                                            @Payload final ChatMessageRequest chatMessageRequest,
                                            @AuthUser LoginUser loginUser

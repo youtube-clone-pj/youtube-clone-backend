@@ -33,7 +33,7 @@ public class LiveStreamingViewerCountBroadcaster {
         final String destination = accessor.getDestination();
         final String simpSessionId = accessor.getSessionId();
 
-        if (destination != null && destination.matches("/topic/room/\\d+")) {
+        if (destination != null && destination.matches("/topic/chat/rooms/\\d+/messages")) {
             liveStreamingViewerManager.addViewer(extractRoomId(destination), simpSessionId);
         }
     }
@@ -54,7 +54,7 @@ public class LiveStreamingViewerCountBroadcaster {
             final int count = liveStreamingViewerManager.getViewerCount(roomId);
 
             messagingTemplate.convertAndSend(
-                    "/topic/room/" + roomId + "/count",
+                    "/topic/chat/rooms/" + roomId + "/viewer-count",
                     count
             );
         });
@@ -63,11 +63,11 @@ public class LiveStreamingViewerCountBroadcaster {
     /**
      * destination에서 roomId를 추출
      *
-     * @param destination 예: "/topic/room/123"
+     * @param destination 예: "/topic/chat/rooms/123/messages"
      * @return roomId 예: 123
      */
     private Long extractRoomId(final String destination) {
         final String[] parts = destination.split("/");
-        return Long.parseLong(parts[parts.length - 1]);
+        return Long.parseLong(parts[parts.length - 2]);
     }
 }

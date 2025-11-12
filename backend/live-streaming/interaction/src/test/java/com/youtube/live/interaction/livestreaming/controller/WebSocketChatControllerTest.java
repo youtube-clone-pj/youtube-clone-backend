@@ -22,7 +22,7 @@ import java.util.concurrent.TimeoutException;
 
 import static com.youtube.core.testfixtures.builder.ChannelBuilder.*;
 import static com.youtube.live.interaction.builder.LiveStreamingBuilder.*;
-import static com.youtube.live.interaction.config.WebSocketConfig.Destinations.getRoomTopic;
+import static com.youtube.live.interaction.config.WebSocketConfig.Destinations.getChatRoomMessagesTopic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -50,7 +50,7 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
 
         // 방 구독
         testSession.subscribe(
-                getRoomTopic(savedLiveStreaming.getId()),
+                getChatRoomMessagesTopic(savedLiveStreaming.getId()),
                 ChatMessageResponse.class
         );
 
@@ -67,7 +67,7 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
         // then
         await().atMost(Duration.ofSeconds(2))
                 .untilAsserted(() -> {
-                    final List<ChatMessageResponse> receivedMessages = testSession.getReceivedMessages(getRoomTopic(savedLiveStreaming.getId()));
+                    final List<ChatMessageResponse> receivedMessages = testSession.getReceivedMessages(getChatRoomMessagesTopic(savedLiveStreaming.getId()));
                     assertThat(receivedMessages).hasSize(1);
                     assertThat(receivedMessages.get(0).getUsername()).isEqualTo("테스트 유저");
                     assertThat(receivedMessages.get(0).getMessage()).isEqualTo("안녕하세요");
@@ -107,7 +107,7 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
         final TestStompSession<ChatMessageResponse> session2 = TestStompSession.connect(wsUrl, jsessionId2);
 
         // 두 클라이언트 모두 같은 방 구독
-        final String roomTopic = getRoomTopic(savedLiveStreaming.getId());
+        final String roomTopic = getChatRoomMessagesTopic(savedLiveStreaming.getId());
         session1.subscribe(roomTopic, ChatMessageResponse.class);
         session2.subscribe(roomTopic, ChatMessageResponse.class);
 
@@ -177,8 +177,8 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
         final TestStompSession<ChatMessageResponse> session2 = TestStompSession.connect(wsUrl, jsessionId2);
 
         // 클라이언트 1은 방 1 구독, 클라이언트 2는 방 2 구독
-        final String room1Topic = getRoomTopic(liveStreaming1.getId());
-        final String room2Topic = getRoomTopic(liveStreaming2.getId());
+        final String room1Topic = getChatRoomMessagesTopic(liveStreaming1.getId());
+        final String room2Topic = getChatRoomMessagesTopic(liveStreaming2.getId());
         session1.subscribe(room1Topic, ChatMessageResponse.class);
         session2.subscribe(room2Topic, ChatMessageResponse.class);
 
@@ -238,7 +238,7 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
         final TestStompSession<ChatMessageResponse> testSession = TestStompSession.connect(wsUrl, jsessionId);
 
         // 방 구독
-        final String roomTopic = getRoomTopic(savedLiveStreaming.getId());
+        final String roomTopic = getChatRoomMessagesTopic(savedLiveStreaming.getId());
         testSession.subscribe(roomTopic, ChatMessageResponse.class);
 
         // when: 여러 메시지 연속 전송
