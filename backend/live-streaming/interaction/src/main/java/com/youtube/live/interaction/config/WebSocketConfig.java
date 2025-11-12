@@ -1,12 +1,17 @@
 package com.youtube.live.interaction.config;
 
+import com.youtube.live.interaction.websocket.auth.AuthUserArgumentResolver;
+import com.youtube.live.interaction.websocket.auth.WebSocketAuthInterceptor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
+
+import java.util.List;
 
 /**
  * WebSocket 설정 클래스
@@ -74,6 +79,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(new WebSocketAuthInterceptor());
+    }
+
+    /**
+     * 커스텀 ArgumentResolver를 등록합니다.
+     *
+     * AuthUserArgumentResolver를 등록하여 @AuthUser 어노테이션이 붙은 파라미터에
+     * 인증된 사용자 정보를 주입합니다.
+     */
+    @Override
+    public void addArgumentResolvers(final List<HandlerMethodArgumentResolver> argumentResolvers) {
+        argumentResolvers.add(new AuthUserArgumentResolver());
     }
 
     /**

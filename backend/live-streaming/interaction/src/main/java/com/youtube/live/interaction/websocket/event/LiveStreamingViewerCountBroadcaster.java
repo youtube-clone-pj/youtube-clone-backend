@@ -1,4 +1,4 @@
-package com.youtube.live.interaction.config;
+package com.youtube.live.interaction.websocket.event;
 
 import com.youtube.live.interaction.livestreaming.domain.LiveStreamingViewerManager;
 import lombok.RequiredArgsConstructor;
