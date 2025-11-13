@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import static com.youtube.live.interaction.config.WebSocketConfig.Destinations.getChatRoomMessagesTopic;
+import static com.youtube.live.interaction.config.WebSocketConfig.Destinations.getChatLivestreamMessagesTopic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -39,12 +39,12 @@ class LiveStreamingViewerCountBroadcasterTest extends WebSocketStompTest {
         final String jsessionId2 = TestAuthSupport.login("user2@example.com", "password2!");
         final TestStompSession<Integer> session2 = TestStompSession.connect(wsUrl, jsessionId2);
 
-        final String countTopic = "/topic/chat/rooms/" + liveStreaming.getId() + "/viewer-count";
+        final String countTopic = "/topic/livestreams/" + liveStreaming.getId() + "/viewer-count";
         session1.subscribe(countTopic, Integer.class);
 
         // when - 두 클라이언트가 방 구독
-        session1.subscribe(getChatRoomMessagesTopic(liveStreaming.getId()), Integer.class);
-        session2.subscribe(getChatRoomMessagesTopic(liveStreaming.getId()), Integer.class);
+        session1.subscribe(getChatLivestreamMessagesTopic(liveStreaming.getId()), Integer.class);
+        session2.subscribe(getChatLivestreamMessagesTopic(liveStreaming.getId()), Integer.class);
 
         sut.broadcastViewerCounts();
 

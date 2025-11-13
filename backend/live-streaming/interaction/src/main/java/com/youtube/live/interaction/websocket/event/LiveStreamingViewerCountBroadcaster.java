@@ -33,8 +33,8 @@ public class LiveStreamingViewerCountBroadcaster {
         final String destination = accessor.getDestination();
         final String simpSessionId = accessor.getSessionId();
 
-        if (destination != null && destination.matches("/topic/chat/rooms/\\d+/messages")) {
-            liveStreamingViewerManager.addViewer(extractRoomId(destination), simpSessionId);
+        if (destination != null && destination.matches("/topic/livestreams/\\d+/chat/messages")) {
+            liveStreamingViewerManager.addViewer(extractLivestreamId(destination), simpSessionId);
         }
     }
 
@@ -50,24 +50,24 @@ public class LiveStreamingViewerCountBroadcaster {
 
     @Scheduled(fixedRate = 5000)
     public void broadcastViewerCounts() {
-        liveStreamingViewerManager.getActiveRoomIds().forEach(roomId -> {
-            final int count = liveStreamingViewerManager.getViewerCount(roomId);
+        liveStreamingViewerManager.getActiveLivestreamIds().forEach(livestreamId -> {
+            final int count = liveStreamingViewerManager.getViewerCount(livestreamId);
 
             messagingTemplate.convertAndSend(
-                    "/topic/chat/rooms/" + roomId + "/viewer-count",
+                    "/topic/livestreams/" + livestreamId + "/viewer-count",
                     count
             );
         });
     }
 
     /**
-     * destination에서 roomId를 추출
+     * destination에서 livestreamId를 추출
      *
-     * @param destination 예: "/topic/chat/rooms/123/messages"
-     * @return roomId 예: 123
+     * @param destination 예: "/topic/livestreams/123/chat/messages"
+     * @return livestreamId 예: 123
      */
-    private Long extractRoomId(final String destination) {
+    private Long extractLivestreamId(final String destination) {
         final String[] parts = destination.split("/");
-        return Long.parseLong(parts[parts.length - 2]);
+        return Long.parseLong(parts[3]);
     }
 }
