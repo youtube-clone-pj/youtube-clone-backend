@@ -7,7 +7,7 @@ import com.youtube.core.testfixtures.builder.UserBuilder;
 import com.youtube.live.interaction.builder.LiveStreamingBuilder;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreaming;
 import com.youtube.live.interaction.support.TestStompSession;
-import com.youtube.live.interaction.websocket.event.LiveStreamingViewerCountBroadcaster;
+import com.youtube.live.interaction.websocket.event.LiveStreamingSubscriberCountPublisher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +21,10 @@ import static com.youtube.live.interaction.config.WebSocketConfig.Destinations.g
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-class LiveStreamingViewerCountBroadcasterTest extends WebSocketStompTest {
+class LiveStreamingSubscriberCountPublisherTest extends WebSocketStompTest {
 
     @Autowired
-    private LiveStreamingViewerCountBroadcaster sut;
+    private LiveStreamingSubscriberCountPublisher sut;
 
     @Test
     @DisplayName("클라이언트 구독 및 해제 시 시청자 수 변경 이벤트가 정상 동작한다")
@@ -46,7 +46,7 @@ class LiveStreamingViewerCountBroadcasterTest extends WebSocketStompTest {
         session1.subscribe(getChatLivestreamMessagesTopic(liveStreaming.getId()), Integer.class);
         session2.subscribe(getChatLivestreamMessagesTopic(liveStreaming.getId()), Integer.class);
 
-        sut.broadcastViewerCounts();
+        sut.publishSubscriberCounts();
 
         // then - 시청자 수 2가 브로드캐스트됨
         await().atMost(Duration.ofSeconds(5))
@@ -59,7 +59,7 @@ class LiveStreamingViewerCountBroadcasterTest extends WebSocketStompTest {
         // when - 한 클라이언트 연결 해제
         session2.disconnect();
         // WebSocketStompTest의 설정에서 스케쥴러 비활성화해서 브로드캐스트를 임의로 실행해야함.
-        sut.broadcastViewerCounts();
+        sut.publishSubscriberCounts();
 
         // then - 연결 해제가 완전히 처리되고 시청자 수 1로 감소
         await().atMost(Duration.ofSeconds(10))

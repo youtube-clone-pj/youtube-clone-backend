@@ -11,13 +11,13 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class LiveStreamingViewerManagerTest {
+class LiveStreamingSubscriberManagerTest {
 
-    private LiveStreamingViewerManager sut;
+    private LiveStreamingSubscriberManager sut;
 
     @BeforeEach
     void setUp() {
-        sut = new LiveStreamingViewerManager();
+        sut = new LiveStreamingSubscriberManager();
     }
 
     @Test
@@ -28,11 +28,11 @@ class LiveStreamingViewerManagerTest {
         final String simpSessionId = "session-1";
 
         // when
-        sut.addViewer(livestreamId, simpSessionId);
-        sut.addViewer(livestreamId, simpSessionId);
+        sut.addSubscriber(livestreamId, simpSessionId);
+        sut.addSubscriber(livestreamId, simpSessionId);
 
         // then
-        assertThat(sut.getViewerCount(livestreamId)).isEqualTo(1);
+        assertThat(sut.getSubscriberCount(livestreamId)).isEqualTo(1);
     }
 
     @Test
@@ -42,7 +42,7 @@ class LiveStreamingViewerManagerTest {
         final Long livestreamId = 1L;
 
         // when
-        final int count = sut.getViewerCount(livestreamId);
+        final int count = sut.getSubscriberCount(livestreamId);
 
         // then
         assertThat(count).isZero();
@@ -61,7 +61,7 @@ class LiveStreamingViewerManagerTest {
             final int sessionNumber = i;
             executorService.submit(() -> {
                 try {
-                    sut.addViewer(livestreamId, "session-" + sessionNumber);
+                    sut.addSubscriber(livestreamId, "session-" + sessionNumber);
                 } finally {
                     latch.countDown();
                 }
@@ -72,7 +72,7 @@ class LiveStreamingViewerManagerTest {
             final int sessionNumber = i;
             executorService.submit(() -> {
                 try {
-                    sut.removeViewer("session-" + sessionNumber);
+                    sut.removeSubscriber("session-" + sessionNumber);
                 } finally {
                     latch.countDown();
                 }
@@ -83,7 +83,7 @@ class LiveStreamingViewerManagerTest {
         executorService.shutdown();
 
         // then
-        assertThat(sut.getViewerCount(livestreamId)).isEqualTo(10);
+        assertThat(sut.getSubscriberCount(livestreamId)).isEqualTo(10);
     }
 
     @Test
@@ -103,7 +103,7 @@ class LiveStreamingViewerManagerTest {
                 final int finalViewerIndex = viewerIndex;
                 executorService.submit(() -> {
                     try {
-                        sut.addViewer(finalLivestreamId, "session-livestream" + finalLivestreamId + "-viewer" + finalViewerIndex);
+                        sut.addSubscriber(finalLivestreamId, "session-livestream" + finalLivestreamId + "-viewer" + finalViewerIndex);
                     } finally {
                         latch.countDown();
                     }
@@ -116,7 +116,7 @@ class LiveStreamingViewerManagerTest {
 
         // then
         for (int livestreamId = 1; livestreamId <= livestreamCount; livestreamId++) {
-            assertThat(sut.getViewerCount((long) livestreamId)).isEqualTo(viewersPerLivestream);
+            assertThat(sut.getSubscriberCount((long) livestreamId)).isEqualTo(viewersPerLivestream);
         }
         assertThat(sut.getActiveLivestreamIds()).hasSize(livestreamCount);
     }
