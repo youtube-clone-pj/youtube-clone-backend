@@ -12,14 +12,14 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 /**
- * 라이브 스트리밍 구독자 수 발행
+ * 라이브 스트리밍 시청자 수 발행
  *
- * WebSocket 세션의 구독/연결해제 이벤트를 리스닝하고, 구독자 수를 주기적으로 발행
+ * WebSocket 세션의 구독/연결해제 이벤트를 리스닝하고, 시청자 수를 주기적으로 발행
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class LiveStreamingSubscriberCountPublisher {
+public class LiveStreamingViewerCountPublisher {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final LiveStreamingSubscriberManager liveStreamingSubscriberManager;
@@ -49,13 +49,14 @@ public class LiveStreamingSubscriberCountPublisher {
     }
 
     @Scheduled(fixedRate = 5000)
-    public void publishSubscriberCounts() {
+    public void publishViewerCounts() {
         liveStreamingSubscriberManager.getActiveLivestreamIds().forEach(livestreamId -> {
-            final int count = liveStreamingSubscriberManager.getSubscriberCount(livestreamId);
+            final int totalSubscribers = liveStreamingSubscriberManager.getSubscriberCount(livestreamId);
+            final int viewerCount = Math.max(0, totalSubscribers - 1);
 
             messagingTemplate.convertAndSend(
                     "/topic/livestreams/" + livestreamId + "/viewer-count",
-                    count
+                    viewerCount
             );
         });
     }
