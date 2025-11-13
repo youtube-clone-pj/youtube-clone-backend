@@ -37,7 +37,7 @@ class LiveStreamingSubscriberManagerTest {
 
     @Test
     @DisplayName("구독자가 없는 라이브 스트리밍의 구독자 수는 0이다")
-    void emptyLivestreamHasZeroViewers() {
+    void emptyLivestreamHasZeroSubscribers() {
         // given
         final Long livestreamId = 1L;
 
@@ -50,7 +50,7 @@ class LiveStreamingSubscriberManagerTest {
 
     @Test
     @DisplayName("동시에 구독자 추가와 제거가 발생해도 정확한 구독자 수를 유지한다")
-    void addingAndRemovingViewersAtSameTimeKeepsAccurateCount() throws InterruptedException {
+    void addingAndRemovingSubscribersAtSameTimeKeepsAccurateCount() throws InterruptedException {
         // given
         final Long livestreamId = 1L;
         final int threadCount = 20;
@@ -88,7 +88,7 @@ class LiveStreamingSubscriberManagerTest {
 
     @Test
     @DisplayName("여러 라이브 스트리밍에 동시에 구독자가 추가되어도 각 라이브 스트리밍의 구독자 수를 정확히 유지한다")
-    void addingViewersToMultipleLivestreamsAtSameTimeKeepsAccurateCount() throws InterruptedException {
+    void addingSubscribersToMultipleLivestreamsAtSameTimeKeepsAccurateCount() throws InterruptedException {
         // given
         final int livestreamCount = 10;
         final int viewersPerLivestream = 50;
