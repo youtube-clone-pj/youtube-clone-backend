@@ -1,6 +1,6 @@
 package com.youtube.live.interaction.websocket.event;
 
-import com.youtube.live.interaction.livestreaming.domain.LiveStreamingViewerManager;
+import com.youtube.live.interaction.livestreaming.domain.LiveStreamingSubscriberManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -12,17 +12,17 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 /**
- * 라이브 스트리밍 실시간 시청자 수 관리
+ * 라이브 스트리밍 구독자 수 발행
  *
- * WebSocket 세션의 구독/연결해제 이벤트를 리스닝
+ * WebSocket 세션의 구독/연결해제 이벤트를 리스닝하고, 구독자 수를 주기적으로 발행
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class LiveStreamingViewerCountBroadcaster {
+public class LiveStreamingSubscriberCountPublisher {
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final LiveStreamingViewerManager liveStreamingViewerManager;
+    private final LiveStreamingSubscriberManager liveStreamingSubscriberManager;
 
     /**
      * 클라이언트가 특정 토픽을 구독할 때 호출
@@ -33,8 +33,8 @@ public class LiveStreamingViewerCountBroadcaster {
         final String destination = accessor.getDestination();
         final String simpSessionId = accessor.getSessionId();
 
-        if (destination != null && destination.matches("/topic/room/\\d+")) {
-            liveStreamingViewerManager.addViewer(extractRoomId(destination), simpSessionId);
+        if (destination != null && destination.matches("/topic/livestreams/\\d+/chat/messages")) {
+            liveStreamingSubscriberManager.addSubscriber(extractLivestreamId(destination), simpSessionId);
         }
     }
 
@@ -45,29 +45,29 @@ public class LiveStreamingViewerCountBroadcaster {
      */
     @EventListener
     public void handleDisconnect(final SessionDisconnectEvent event) {
-        liveStreamingViewerManager.removeViewer(event.getSessionId());
+        liveStreamingSubscriberManager.removeSubscriber(event.getSessionId());
     }
 
     @Scheduled(fixedRate = 5000)
-    public void broadcastViewerCounts() {
-        liveStreamingViewerManager.getActiveRoomIds().forEach(roomId -> {
-            final int count = liveStreamingViewerManager.getViewerCount(roomId);
+    public void publishSubscriberCounts() {
+        liveStreamingSubscriberManager.getActiveLivestreamIds().forEach(livestreamId -> {
+            final int count = liveStreamingSubscriberManager.getSubscriberCount(livestreamId);
 
             messagingTemplate.convertAndSend(
-                    "/topic/room/" + roomId + "/count",
+                    "/topic/livestreams/" + livestreamId + "/viewer-count",
                     count
             );
         });
     }
 
     /**
-     * destination에서 roomId를 추출
+     * destination에서 livestreamId를 추출
      *
-     * @param destination 예: "/topic/room/123"
-     * @return roomId 예: 123
+     * @param destination 예: "/topic/livestreams/123/chat/messages"
+     * @return livestreamId 예: 123
      */
-    private Long extractRoomId(final String destination) {
+    private Long extractLivestreamId(final String destination) {
         final String[] parts = destination.split("/");
-        return Long.parseLong(parts[parts.length - 1]);
+        return Long.parseLong(parts[3]);
     }
 }

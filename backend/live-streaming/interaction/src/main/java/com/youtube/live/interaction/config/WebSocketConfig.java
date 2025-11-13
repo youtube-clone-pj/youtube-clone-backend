@@ -27,12 +27,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      * 메시지 브로커를 설정합니다.
      *
      * SimpleBroker를 활성화하여 구독 관리 및 메시지 라우팅을 자동으로 처리합니다.
-     * - "/topic" 접두사: 클라이언트가 구독할 수 있는 목적지 (예: /topic/room/1)
+     * - "/topic" 접두사: 클라이언트가 구독할 수 있는 목적지 (예: /topic/livestreams/1/chat/messages)
      *   SimpleBroker가 자동으로 구독자를 관리하고 브로드캐스트합니다.
      * - "/queue" 접두사: 개별 사용자에게 메시지를 전송할 때 사용 (예: /user/queue/errors)
      *   @SendToUser 어노테이션과 함께 사용됩니다.
      * - "/app" 접두사: 클라이언트가 서버의 @MessageMapping 메서드로 메시지를 전송할 때 사용
-     *   (예: /app/chat/rooms/1/messages → @MessageMapping("/chat/rooms/{roomId}/messages"))
+     *   (예: /app/livestreams/1/chat/messages → @MessageMapping("/livestreams/{livestreamId}/chat/messages"))
      *
      * setPreservePublishOrder(true): 서버에서 클라이언트로 메시지를 발행할 때 순서를 보장합니다.
      * 같은 세션의 아웃바운드 메시지가 순서대로 전송됩니다.
@@ -105,11 +105,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         public static final String WS_ENDPOINT = "/ws";
 
         // Topic destinations
-        public static final String ROOM_TOPIC = "/topic/room/{roomId}";
-        public static final String ROOM_COUNT_TOPIC = "/topic/room/{roomId}/count";
+        public static final String CHAT_LIVESTREAM_MESSAGES_TOPIC = "/topic/livestreams/{livestreamId}/chat/messages";
+        public static final String CHAT_LIVESTREAM_VIEWER_COUNT_TOPIC = "/topic/livestreams/{livestreamId}/viewer-count";
 
-        public static String getRoomTopic(Long roomId) {
-            return ROOM_TOPIC.replace("{roomId}", String.valueOf(roomId));
+        public static String getChatLivestreamMessagesTopic(Long livestreamId) {
+            return CHAT_LIVESTREAM_MESSAGES_TOPIC.replace("{livestreamId}", String.valueOf(livestreamId));
+        }
+
+        public static String getChatLivestreamViewerCountTopic(Long livestreamId) {
+            return CHAT_LIVESTREAM_VIEWER_COUNT_TOPIC.replace("{livestreamId}", String.valueOf(livestreamId));
         }
     }
 }

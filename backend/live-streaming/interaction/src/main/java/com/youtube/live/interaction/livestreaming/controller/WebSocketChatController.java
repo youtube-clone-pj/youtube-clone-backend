@@ -26,9 +26,9 @@ public class WebSocketChatController {
 
     private final LiveStreamingChatService liveStreamingChatService;
 
-    @MessageMapping("/chat/rooms/{roomId}/messages")
-    @SendTo("/topic/room/{roomId}")
-    public ChatMessageResponse sendMessage(@DestinationVariable final Long roomId,
+    @MessageMapping("/livestreams/{livestreamId}/chat/messages")
+    @SendTo("/topic/livestreams/{livestreamId}/chat/messages")
+    public ChatMessageResponse sendMessage(@DestinationVariable final Long livestreamId,
                                            @Payload final ChatMessageRequest chatMessageRequest,
                                            @AuthUser LoginUser loginUser
     ) {
@@ -36,7 +36,7 @@ public class WebSocketChatController {
         final String username = loginUser.getUsername();
 
         final LiveStreamingChatInfo savedChatInfo = liveStreamingChatService.sendMessage(
-                roomId,
+                livestreamId,
                 userId,
                 chatMessageRequest.getMessage(),
                 chatMessageRequest.getChatMessageType()
