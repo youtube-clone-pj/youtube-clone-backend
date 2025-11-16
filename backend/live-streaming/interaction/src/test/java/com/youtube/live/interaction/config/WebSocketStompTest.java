@@ -1,7 +1,7 @@
 package com.youtube.live.interaction.config;
 
 import com.youtube.core.testfixtures.support.DatabaseCleanup;
-import com.youtube.core.testfixtures.support.TestPersistSupport;
+import com.youtube.core.testfixtures.support.TestSupport;
 import com.youtube.core.testfixtures.support.TestContainer;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.AfterEach;
@@ -26,7 +26,7 @@ public abstract class WebSocketStompTest extends TestContainer {
     private DatabaseCleanup databaseCleanup;
 
     @Autowired
-    protected TestPersistSupport testSupport;
+    protected TestSupport testSupport;
 
     protected String wsUrl;
 

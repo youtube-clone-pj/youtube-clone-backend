@@ -2,6 +2,7 @@ package com.youtube.api.config;
 
 import com.youtube.core.testfixtures.support.DatabaseCleanup;
 import com.youtube.core.testfixtures.support.TestContainer;
+import com.youtube.core.testfixtures.support.TestSupport;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("api-test")
 @EnableAutoConfiguration
-@ComponentScan(basePackages = {"com.youtube.api", "com.youtube.core"})
+@ComponentScan(basePackages = {"com.youtube.api", "com.youtube.core", "com.youtube.live"})
 public class RestAssuredTest extends TestContainer {
 
     @LocalServerPort
@@ -23,6 +24,9 @@ public class RestAssuredTest extends TestContainer {
 
     @Autowired
     private DatabaseCleanup databaseCleanup;
+
+    @Autowired
+    protected TestSupport testSupport;
 
     @BeforeEach
     public void setUp() {

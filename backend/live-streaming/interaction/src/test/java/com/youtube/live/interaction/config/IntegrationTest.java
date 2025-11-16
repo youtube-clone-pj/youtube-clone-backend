@@ -1,25 +1,18 @@
-package com.youtube.api.config;
+package com.youtube.live.interaction.config;
 
 import com.youtube.core.testfixtures.support.DatabaseCleanup;
-import com.youtube.core.testfixtures.support.TestSupport;
 import com.youtube.core.testfixtures.support.TestContainer;
+import com.youtube.core.testfixtures.support.TestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(
-        classes = IntegrationTest.CoreTestConfiguration.class
+        classes = com.youtube.live.interaction.InteractionTestApplication.class
 )
-@ActiveProfiles("api-test")
-public abstract class IntegrationTest extends TestContainer {
-
-    @EnableAutoConfiguration
-    @ComponentScan(basePackages = {"com.youtube.api", "com.youtube.core"})
-    static class CoreTestConfiguration {
-    }
+@ActiveProfiles("websocket-test")
+public class IntegrationTest extends TestContainer {
 
     @Autowired
     private DatabaseCleanup databaseCleanup;
