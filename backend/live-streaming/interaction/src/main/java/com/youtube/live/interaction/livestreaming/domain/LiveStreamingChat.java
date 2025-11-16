@@ -4,11 +4,13 @@ import com.youtube.core.common.BaseEntity;
 import com.youtube.core.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "live_streaming_chat")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLRestriction("deleted_date IS NULL")
 public class LiveStreamingChat extends BaseEntity {
 
     @Id
