@@ -4,6 +4,7 @@ import com.youtube.core.common.BaseEntity;
 import com.youtube.core.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "channel")
@@ -11,6 +12,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@SQLRestriction("deleted_date IS NULL")
 public class Channel extends BaseEntity {
 
     @Id
