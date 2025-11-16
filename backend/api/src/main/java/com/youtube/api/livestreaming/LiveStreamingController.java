@@ -46,4 +46,10 @@ public class LiveStreamingController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/{liveStreamingId}/likes/count")
+    public ResponseEntity<Integer> getLikeCount(@PathVariable final Long liveStreamingId) {
+        final int likeCount = liveStreamingReactionQueryService.getLikeCount(liveStreamingId);
+        return ResponseEntity.ok(likeCount);
+    }
 }

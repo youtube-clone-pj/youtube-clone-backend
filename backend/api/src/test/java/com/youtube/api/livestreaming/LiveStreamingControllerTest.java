@@ -81,4 +81,56 @@ class LiveStreamingControllerTest extends RestAssuredTest {
                 .then()
                 .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
+
+    @Test
+    @DisplayName("라이브 스트리밍의 좋아요 개수를 조회한다")
+    void getLikeCount_ReturnsLikeCount() {
+        // given
+        final Long userId1 = TestAuthSupport.signUp(
+                "user1@example.com",
+                "유저1",
+                "password123!"
+        ).as(Long.class);
+
+        final Long userId2 = TestAuthSupport.signUp(
+                "user2@example.com",
+                "유저2",
+                "password123!"
+        ).as(Long.class);
+
+        final User user1 = UserBuilder.User().withId(userId1).build();
+        final User user2 = UserBuilder.User().withId(userId2).build();
+        final Channel channel = testSupport.save(Channel().withUser(user1).build());
+        final LiveStreaming liveStreaming = testSupport.save(LiveStreaming().withChannel(channel).build());
+
+        final String jsessionId1 = TestAuthSupport.login("user1@example.com", "password123!");
+        final String jsessionId2 = TestAuthSupport.login("user2@example.com", "password123!");
+        final ReactionCreateRequest request = new ReactionCreateRequest(ReactionType.LIKE);
+
+        // 두 명의 사용자가 좋아요를 누름
+        given()
+                .cookie("JSESSIONID", jsessionId1)
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/api/v1/livestreams/{liveStreamingId}/likes", liveStreaming.getId());
+
+        given()
+                .cookie("JSESSIONID", jsessionId2)
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/api/v1/livestreams/{liveStreamingId}/likes", liveStreaming.getId());
+
+        // when
+        final ExtractableResponse<Response> response = given()
+                .when()
+                .get("/api/v1/livestreams/{liveStreamingId}/likes/count", liveStreaming.getId())
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract();
+
+        // then
+        assertThat(response.as(Integer.class)).isEqualTo(2);
+    }
 }
