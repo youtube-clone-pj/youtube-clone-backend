@@ -48,6 +48,7 @@ public class LiveStreamingViewerCountPublisher {
         liveStreamingSubscriberManager.removeSubscriber(event.getSessionId());
     }
 
+    //TODO TaskScheduler로 수정이 필요한 지 확인할 것
     @Scheduled(fixedRate = 5000)
     public void publishViewerCounts() {
         liveStreamingSubscriberManager.getActiveLivestreamIds().forEach(livestreamId -> {

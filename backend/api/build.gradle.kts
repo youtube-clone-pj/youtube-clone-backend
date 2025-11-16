@@ -27,4 +27,5 @@ dependencies {
     implementation(project(":live-streaming:interaction"))
 
     testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":live-streaming:interaction")))
 }

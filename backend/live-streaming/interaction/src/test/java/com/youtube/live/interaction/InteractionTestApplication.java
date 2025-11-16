@@ -6,12 +6,14 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @EntityScan(basePackages = {"com.youtube.api", "com.youtube.core", "com.youtube.live.interaction"})
 @ComponentScan(basePackages = {"com.youtube.api", "com.youtube.core", "com.youtube.live.interaction"})
 @EnableJpaRepositories(basePackages = {"com.youtube.api", "com.youtube.core", "com.youtube.live.interaction"})
 @EnableJpaAuditing
+@EnableAsync
 public class InteractionTestApplication {
 
     public static void main(final String[] args) {

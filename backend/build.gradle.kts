@@ -45,6 +45,8 @@ subprojects {
 		testCompileOnly("org.projectlombok:lombok:${lombokVersion}")
 		testAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 		testImplementation("io.rest-assured:rest-assured:${restAssuredVersion}")
+		testImplementation("com.querydsl:querydsl-jpa:${querydslVersion}:jakarta")
+		testImplementation("com.querydsl:querydsl-apt:${querydslVersion}:jakarta")
 
 		testFixturesCompileOnly("org.projectlombok:lombok:${lombokVersion}")
 		testFixturesAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")

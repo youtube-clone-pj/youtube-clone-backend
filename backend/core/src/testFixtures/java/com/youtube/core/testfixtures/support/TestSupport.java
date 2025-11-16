@@ -10,14 +10,14 @@ import org.springframework.boot.test.context.TestComponent;
 import java.util.List;
 
 @TestComponent
-public class TestPersistSupport {
+public class TestSupport {
 
     private EntityManager entityManager;
     private EntityTransaction transaction;
     public JPAQueryFactory jpaQueryFactory;
 
     @Autowired
-    private TestPersistSupport(EntityManagerFactory entityManagerFactory, JPAQueryFactory jpaQueryFactory) {
+    private TestSupport(EntityManagerFactory entityManagerFactory, JPAQueryFactory jpaQueryFactory) {
         this.entityManager = entityManagerFactory.createEntityManager();
         this.transaction = entityManager.getTransaction();
         this.jpaQueryFactory = jpaQueryFactory;

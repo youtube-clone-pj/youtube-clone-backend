@@ -1,13 +1,13 @@
-package com.youtube.live.interaction.config;
+package com.youtube.live.interaction.websocket.event;
 
 import com.youtube.api.testfixtures.support.TestAuthSupport;
 import com.youtube.core.channel.domain.Channel;
 import com.youtube.core.testfixtures.builder.ChannelBuilder;
 import com.youtube.core.testfixtures.builder.UserBuilder;
 import com.youtube.live.interaction.builder.LiveStreamingBuilder;
+import com.youtube.live.interaction.config.WebSocketStompTest;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreaming;
 import com.youtube.live.interaction.support.TestStompSession;
-import com.youtube.live.interaction.websocket.event.LiveStreamingViewerCountPublisher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
