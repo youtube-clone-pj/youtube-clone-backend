@@ -26,4 +26,8 @@ public abstract class BaseEntity {
     public void softDelete(LocalDateTime deletedDate) {
         this.deletedDate = deletedDate;
     }
+
+    public void restore() {
+        this.deletedDate = null;
+    }
 }

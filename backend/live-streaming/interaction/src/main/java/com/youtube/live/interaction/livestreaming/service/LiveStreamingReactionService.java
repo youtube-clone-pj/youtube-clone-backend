@@ -10,13 +10,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class LiveStreamingReactionService {
 
-    private final ReactionReader reactionReader;
     private final ReactionWriter reactionWriter;
     private final LiveStreamingReader liveStreamingReader;
     private final UserReader userReader;
@@ -29,7 +26,7 @@ public class LiveStreamingReactionService {
         final LiveStreaming liveStreaming = liveStreamingReader.readBy(liveStreamingId);
         final User user = userReader.readBy(userId);
 
-        final ReactionType resultType = processReactionToggle(liveStreaming, user, requestType);
+        final ReactionType resultType = reactionWriter.processToggle(liveStreaming, user, requestType);
         publishLikeCountEventIfNeeded(liveStreamingId, resultType);
 
         return new ReactionToggleResult(resultType);
@@ -39,33 +36,5 @@ public class LiveStreamingReactionService {
         if (resultType == ReactionType.LIKE) {
             eventPublisher.publishEvent(new ReactionEvent(liveStreamingId));
         }
-    }
-
-    private ReactionType processReactionToggle(
-            final LiveStreaming liveStreaming, final User user, final ReactionType requestType
-    ) {
-        final Optional<LiveStreamingReaction> existingReaction = reactionReader.readBy(liveStreaming.getId(), user.getId());
-        if (existingReaction.isEmpty()) {
-            createReaction(liveStreaming, user, requestType);
-            return requestType;
-        }
-
-        final LiveStreamingReaction reaction = existingReaction.get();
-        if (reaction.isSameType(requestType)) {
-            reactionWriter.remove(reaction);
-            return null;
-        }
-        reaction.changeType(requestType);
-
-        return requestType;
-    }
-
-    private void createReaction(final LiveStreaming liveStreaming, final User user, final ReactionType type) {
-        reactionWriter.write(LiveStreamingReaction.builder()
-            .liveStreaming(liveStreaming)
-            .user(user)
-            .type(type)
-            .build()
-        );
     }
 }
