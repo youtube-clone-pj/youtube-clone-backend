@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * WebSocket 에러 응답 DTO
@@ -15,10 +15,10 @@ import java.time.LocalDateTime;
 public class ErrorResponse {
 
     private String message;
-    private LocalDateTime timestamp;
+    private Instant timestamp;
 
     public ErrorResponse(final String message) {
         this.message = message;
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = Instant.now();
     }
 }

@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +20,7 @@ public class LiveStreamingChatService {
 
     @Transactional
     public LiveStreamingChatInfo sendMessage(final Long liveStreamingId, final Long userId, final String message,
-                                             final ChatMessageType messageType, final LocalDateTime now) {
+                                             final ChatMessageType messageType, final Instant now) {
         final LiveStreaming liveStreaming = liveStreamingReader.readBy(liveStreamingId);
         final User user = userReader.readBy(userId);
 
