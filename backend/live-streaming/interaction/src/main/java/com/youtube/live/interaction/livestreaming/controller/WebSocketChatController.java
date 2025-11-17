@@ -20,7 +20,7 @@ import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Controller
@@ -60,7 +60,7 @@ public class WebSocketChatController {
                 userId,
                 chatMessageRequest.getMessage(),
                 chatMessageRequest.getChatMessageType(),
-                LocalDateTime.now()
+                Instant.now()
         );
 
         return new ChatMessageResponse(
@@ -68,7 +68,7 @@ public class WebSocketChatController {
                 chatMessageRequest.getMessage(),
                 chatMessageRequest.getChatMessageType(),
                 savedChatInfo.getUserProfileImageUrl(),
-                LocalDateTime.now()
+                Instant.now()
         );
     }
 

@@ -44,7 +44,7 @@ public class TestStompClientFactory {
     }
 
     private static void configureMessageConverter(final WebSocketStompClient stompClient) {
-        // ObjectMapper에 JavaTimeModule 등록하여 LocalDateTime 역직렬화 가능하도록 설정
+        // ObjectMapper에 JavaTimeModule 등록하여 Instant 역직렬화 가능하도록 설정
         final MappingJackson2MessageConverter messageConverter = new MappingJackson2MessageConverter();
         messageConverter.getObjectMapper().findAndRegisterModules();
         stompClient.setMessageConverter(messageConverter);

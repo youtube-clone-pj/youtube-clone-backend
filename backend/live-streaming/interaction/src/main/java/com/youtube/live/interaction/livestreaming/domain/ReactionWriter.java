@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 
 @Slf4j
@@ -27,8 +27,7 @@ public class ReactionWriter {
      * reaction 파라미터는 영속 상태(managed)여야 합니다.
      */
     public void remove(final LiveStreamingReaction reaction) {
-        //TODO 글로벌 시간 저장 필요
-        reaction.softDelete(LocalDateTime.now());
+        reaction.softDelete(Instant.now());
         log.info("LiveStreamingReaction 삭제 - liveStreamingId: {}, userId: {}, type: {}",
                 reaction.getLiveStreaming().getId(), reaction.getUser().getId(), reaction.getType());
     }

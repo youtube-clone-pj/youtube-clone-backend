@@ -5,7 +5,7 @@ import com.youtube.live.interaction.livestreaming.domain.ChatMessageType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @AllArgsConstructor
@@ -15,13 +15,13 @@ public class LiveStreamingChatInfo {
     private String message;
     private ChatMessageType chatMessageType;
     private String userProfileImageUrl;
-    private LocalDateTime timestamp;
+    private Instant timestamp;
 
     public static LiveStreamingChatInfo of(
             final User user,
             final String message,
             final ChatMessageType chatMessageType,
-            final LocalDateTime timestamp)
+            final Instant timestamp)
     {
         return new LiveStreamingChatInfo(user.getUsername(), message, chatMessageType, user.getProfileImageUrl(), timestamp);
     }
