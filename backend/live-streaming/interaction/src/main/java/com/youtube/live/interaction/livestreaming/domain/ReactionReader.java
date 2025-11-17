@@ -16,6 +16,10 @@ public class ReactionReader {
         return liveStreamingReactionRepository.findByLiveStreamingIdAndUserId(liveStreamingId, userId);
     }
 
+    public Optional<LiveStreamingReaction> readDeletedBy(final Long liveStreamingId, final Long userId) {
+        return liveStreamingReactionRepository.findDeletedByLiveStreamingIdAndUserId(liveStreamingId, userId);
+    }
+
     public int countBy(final Long liveStreamingId, final ReactionType type) {
         return (int) liveStreamingReactionRepository.countByLiveStreamingIdAndType(liveStreamingId, type);
     }

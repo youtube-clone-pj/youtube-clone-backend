@@ -203,4 +203,39 @@ class LiveStreamingReactionServiceTest extends IntegrationTest {
 
         verifyNoInteractions(messagingTemplate);
     }
+
+    @Test
+    @DisplayName("좋아요를 선택한 후 해제하고 다시 선택하면 좋아요가 생성되고 이벤트가 발행된다")
+    void toggleReaction_CreateLike_RemoveLike_CreateLikeAgain() {
+        // given
+        final User user = testSupport.save(User().build());
+        final Channel channel = testSupport.save(Channel().withUser(user).build());
+        final LiveStreaming liveStreaming = testSupport.save(LiveStreaming().withChannel(channel).build());
+
+        // 첫 번째: 좋아요 선택
+        sut.toggleReaction(liveStreaming.getId(), user.getId(), ReactionType.LIKE);
+
+        // 두 번째: 좋아요 해제
+        sut.toggleReaction(liveStreaming.getId(), user.getId(), ReactionType.LIKE);
+
+        // when: 세 번째: 좋아요 다시 선택
+        final ReactionToggleResult result = sut.toggleReaction(
+            liveStreaming.getId(),
+            user.getId(),
+            ReactionType.LIKE
+        );
+
+        // then
+        assertThat(result.isLiked()).isTrue();
+        assertThat(result.isDisliked()).isFalse();
+
+        await().atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(messagingTemplate, atLeast(1))
+                            .convertAndSend(
+                                    eq("/topic/livestreams/" + liveStreaming.getId() + "/like-count"),
+                                    any(LikeCountBroadcastResponse.class)
+                            );
+                });
+    }
 }
