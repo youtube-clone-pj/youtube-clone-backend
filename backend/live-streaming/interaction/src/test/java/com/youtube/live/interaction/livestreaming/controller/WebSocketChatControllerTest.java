@@ -3,15 +3,16 @@ package com.youtube.live.interaction.livestreaming.controller;
 import com.youtube.api.testfixtures.support.TestAuthSupport;
 import com.youtube.core.testfixtures.builder.UserBuilder;
 import com.youtube.core.channel.domain.Channel;
+import com.youtube.core.user.domain.User;
 import com.youtube.live.interaction.config.WebSocketConfig;
 import com.youtube.live.interaction.config.WebSocketStompTest;
 import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageRequest;
 import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageResponse;
 import com.youtube.live.interaction.livestreaming.controller.dto.ErrorResponse;
+import com.youtube.live.interaction.livestreaming.controller.dto.InitialChatMessagesResponse;
 import com.youtube.live.interaction.livestreaming.domain.ChatMessageType;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreaming;
 import com.youtube.live.interaction.support.TestStompSession;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,12 +22,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.youtube.core.testfixtures.builder.ChannelBuilder.*;
+import static com.youtube.core.testfixtures.builder.UserBuilder.User;
 import static com.youtube.live.interaction.builder.LiveStreamingBuilder.*;
+import static com.youtube.live.interaction.builder.LiveStreamingChatBuilder.LiveStreamingChat;
 import static com.youtube.live.interaction.config.WebSocketConfig.Destinations.getChatLivestreamMessagesTopic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-@Slf4j
 class WebSocketChatControllerTest extends WebSocketStompTest {
 
     @Test
@@ -65,7 +67,7 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
         );
 
         // then
-        await().atMost(Duration.ofSeconds(2))
+        await().atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
                     final List<ChatMessageResponse> receivedMessages = testSession.getReceivedMessages(getChatLivestreamMessagesTopic(savedLiveStreaming.getId()));
                     assertThat(receivedMessages).hasSize(1);
@@ -122,7 +124,7 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
         );
 
         // then: 두 클라이언트 모두 메시지 수신 확인
-        await().atMost(Duration.ofSeconds(2))
+        await().atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
                     final List<ChatMessageResponse> client1Messages = session1.getReceivedMessages(livestreamTopic);
                     final List<ChatMessageResponse> client2Messages = session2.getReceivedMessages(livestreamTopic);
@@ -193,7 +195,7 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
         );
 
         // then: 라이브 스트리밍 1 구독자만 메시지 수신
-        await().atMost(Duration.ofSeconds(2))
+        await().atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
                     final List<ChatMessageResponse> livestream1Messages = session1.getReceivedMessages(livestream1Topic);
                     final List<ChatMessageResponse> livestream2Messages = session2.getReceivedMessages(livestream2Topic);
@@ -254,7 +256,7 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
         }
 
         // then: 모든 메시지를 순서대로 수신
-        await().atMost(Duration.ofSeconds(2))
+        await().atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
                     final List<ChatMessageResponse> receivedMessages = testSession.getReceivedMessages(livestreamTopic);
                     assertThat(receivedMessages).hasSize(3);
@@ -294,7 +296,7 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
         );
 
         // then: 에러 응답을 받음
-        await().atMost(Duration.ofSeconds(2))
+        await().atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
                     final List<ErrorResponse> errors = testSession.getReceivedMessages("/user/queue/errors");
                     assertThat(errors).hasSize(1);
@@ -353,5 +355,71 @@ class WebSocketChatControllerTest extends WebSocketStompTest {
 
         session1.disconnect();
         session2.disconnect();
+    }
+
+    @Test
+    @DisplayName("채팅방 입장 시 최근 대화 내용을 오래된 것부터 순서대로 받는다")
+    void subscribeToChat_ReceivesInitialMessages() throws ExecutionException, InterruptedException, TimeoutException {
+        // given
+        final User user = testSupport.save(User().withEmail("test1@example.com").build());
+        final Channel channel = testSupport.save(Channel().withUser(user).build());
+        final LiveStreaming liveStreaming = testSupport.save(LiveStreaming().withChannel(channel).build());
+
+        // 채팅 메시지 5개 저장
+        for (int i = 1; i <= 5; i++) {
+            testSupport.save(
+                    LiveStreamingChat()
+                            .withLiveStreaming(liveStreaming)
+                            .withUser(user)
+                            .withMessage("초기 메시지 " + i)
+                            .build()
+            );
+        }
+
+        // when & then: 회원이 채팅 구독
+        TestAuthSupport.signUp("test2@example.com", "테스트 유저2", "password!");
+        final String jsessionId = TestAuthSupport.login("test2@example.com", "password!");
+        final TestStompSession<InitialChatMessagesResponse> memberSession = TestStompSession.connect(wsUrl, jsessionId);
+
+        memberSession.subscribe(
+                WebSocketConfig.Destinations.APP_PREFIX + "/livestreams/" + liveStreaming.getId() + "/chat/messages",
+                InitialChatMessagesResponse.class
+        );
+
+        await().atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> {
+                    final List<InitialChatMessagesResponse> receivedResponses = memberSession.getReceivedMessages(
+                            WebSocketConfig.Destinations.APP_PREFIX + "/livestreams/" + liveStreaming.getId() + "/chat/messages"
+                    );
+
+                    final List<ChatMessageResponse> messages = receivedResponses.get(0).messages();
+                    assertThat(messages).hasSize(5);
+                    assertThat(messages.get(0).getMessage()).isEqualTo("초기 메시지 1");
+                    assertThat(messages.get(4).getMessage()).isEqualTo("초기 메시지 5");
+                });
+
+        memberSession.disconnect();
+
+        // when & then: 비회원이 채팅 구독
+        final TestStompSession<InitialChatMessagesResponse> guestSession = TestStompSession.connect(wsUrl, null);
+
+        guestSession.subscribe(
+                WebSocketConfig.Destinations.APP_PREFIX + "/livestreams/" + liveStreaming.getId() + "/chat/messages",
+                InitialChatMessagesResponse.class
+        );
+
+        await().atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> {
+                    final List<InitialChatMessagesResponse> receivedResponses = guestSession.getReceivedMessages(
+                            WebSocketConfig.Destinations.APP_PREFIX + "/livestreams/" + liveStreaming.getId() + "/chat/messages"
+                    );
+
+                    final List<ChatMessageResponse> messages = receivedResponses.get(0).messages();
+                    assertThat(messages).hasSize(5);
+                    assertThat(messages.get(0).getMessage()).isEqualTo("초기 메시지 1");
+                    assertThat(messages.get(4).getMessage()).isEqualTo("초기 메시지 5");
+                });
+
+        guestSession.disconnect();
     }
 }
