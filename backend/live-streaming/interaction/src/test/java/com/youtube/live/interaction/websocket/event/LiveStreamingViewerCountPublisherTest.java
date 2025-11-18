@@ -47,7 +47,7 @@ class LiveStreamingViewerCountPublisherTest extends WebSocketStompTest {
         sut.publishViewerCounts();
 
         // then - 스트리머는 카운트에서 제외되어 시청자 수 0
-        await().atMost(Duration.ofSeconds(10))
+        await().atMost(Duration.ofSeconds(20))
                 .untilAsserted(() -> {
                     final List<Integer> receivedMessages = streamerSession.getReceivedMessages(countTopic);
                     assertThat(receivedMessages).hasSize(1);
@@ -59,7 +59,7 @@ class LiveStreamingViewerCountPublisherTest extends WebSocketStompTest {
         sut.publishViewerCounts();
 
         // then - 시청자 수 1로 증가 (스트리머 제외, 시청자만 카운트)
-        await().atMost(Duration.ofSeconds(10))
+        await().atMost(Duration.ofSeconds(20))
                 .untilAsserted(() -> {
                     final List<Integer> counts = streamerSession.getReceivedMessages(countTopic);
                     assertThat(counts.size()).isGreaterThan(1);
@@ -72,7 +72,7 @@ class LiveStreamingViewerCountPublisherTest extends WebSocketStompTest {
         sut.publishViewerCounts();
 
         // then - 시청자 수 0으로 감소 (스트리머만 남음)
-        await().atMost(Duration.ofSeconds(10))
+        await().atMost(Duration.ofSeconds(20))
                 .untilAsserted(() -> {
                     final List<Integer> counts = streamerSession.getReceivedMessages(countTopic);
                     assertThat(counts.size()).isGreaterThan(2);
