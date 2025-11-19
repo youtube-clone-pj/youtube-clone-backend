@@ -16,7 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("api-test")
 @EnableAutoConfiguration
-@ComponentScan(basePackages = {"com.youtube.api", "com.youtube.core", "com.youtube.live"})
+@ComponentScan(basePackages = {"com.youtube.api", "com.youtube.core", "com.youtube.live", "com.youtube.notification"})
 public class RestAssuredTest extends TestContainer {
 
     @LocalServerPort

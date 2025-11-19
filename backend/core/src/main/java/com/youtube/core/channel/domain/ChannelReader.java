@@ -14,4 +14,9 @@ public class ChannelReader {
         return channelRepository.findById(channelId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다"));
     }
+
+    public Channel readByUserId(final Long userId) {
+        return channelRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 채널이 존재하지 않습니다"));
+    }
 }

@@ -1,12 +1,16 @@
 package com.youtube.api.livestreaming;
 
+import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreateRequest;
+import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreateResponse;
 import com.youtube.live.interaction.livestreaming.controller.dto.ReactionCreateRequest;
 import com.youtube.live.interaction.livestreaming.controller.dto.ReactionCreateResponse;
 import com.youtube.live.interaction.livestreaming.service.LiveStreamingReactionService;
 import com.youtube.live.interaction.livestreaming.service.LiveStreamingReactionQueryService;
+import com.youtube.live.interaction.livestreaming.service.LiveStreamingService;
 import com.youtube.live.interaction.livestreaming.service.dto.ReactionToggleResult;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +21,7 @@ public class LiveStreamingController {
 
     private final LiveStreamingReactionService liveStreamingReactionService;
     private final LiveStreamingReactionQueryService liveStreamingReactionQueryService;
+    private final LiveStreamingService liveStreamingService;
     private static final String SESSION_USER_ID = "userId";
 
     @PostMapping("/{liveStreamingId}/likes")
@@ -51,5 +56,19 @@ public class LiveStreamingController {
     public ResponseEntity<Integer> getLikeCount(@PathVariable final Long liveStreamingId) {
         final int likeCount = liveStreamingReactionQueryService.getLikeCount(liveStreamingId);
         return ResponseEntity.ok(likeCount);
+    }
+
+    @PostMapping
+    public ResponseEntity<LiveStreamingCreateResponse> startLiveStreaming(
+            @RequestBody final LiveStreamingCreateRequest request,
+            final HttpSession session
+    ) {
+        final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
+        if (userId == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다");
+        }
+
+        final LiveStreamingCreateResponse response = liveStreamingService.startLiveStreaming(userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
