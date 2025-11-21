@@ -11,7 +11,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 		scanBasePackages = {
 				"com.youtube",
 				"com.youtube.core",
-				"com.youtube.live.interaction"
+				"com.youtube.live.interaction",
+				"com.youtube.notification"
 		}
 )
 public class CloneApplication {

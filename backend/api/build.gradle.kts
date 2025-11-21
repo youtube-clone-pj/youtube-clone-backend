@@ -17,7 +17,6 @@ tasks.named<Jar>("jar") {
     enabled = true
 }
 
-val restAssuredVersion: String by project
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.security:spring-security-crypto")
@@ -25,7 +24,10 @@ dependencies {
 
     implementation(project(":core"))
     implementation(project(":live-streaming:interaction"))
+    implementation(project(":notification"))
+    implementation(project(":common"))
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":live-streaming:interaction")))
+    testImplementation(testFixtures(project(":notification")))
 }

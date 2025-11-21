@@ -3,7 +3,9 @@ rootProject.name = "youtube-clone"
 include(
         "api",
     "core",
-    "live-streaming:interaction"
+    "live-streaming:interaction",
+    "notification",
+    "common"
 )
 
 pluginManagement {
