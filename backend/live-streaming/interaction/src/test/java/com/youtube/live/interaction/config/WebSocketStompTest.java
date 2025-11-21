@@ -16,7 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {"spring.task.scheduling.enabled=false"}
 )
-@ActiveProfiles("websocket-test")
+@ActiveProfiles("interaction-test")
 public abstract class WebSocketStompTest extends TestContainer {
 
     @LocalServerPort

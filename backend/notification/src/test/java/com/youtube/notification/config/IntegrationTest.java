@@ -1,4 +1,4 @@
-package com.youtube.live.interaction.config;
+package com.youtube.notification.config;
 
 import com.youtube.core.testfixtures.support.DatabaseCleanup;
 import com.youtube.core.testfixtures.support.TestContainer;
@@ -9,10 +9,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(
-        classes = com.youtube.live.interaction.InteractionTestApplication.class
+        classes = com.youtube.notification.NotificationTestApplication.class
 )
-@ActiveProfiles("interaction-test")
-public class IntegrationTest extends TestContainer {
+@ActiveProfiles("notification-test")
+public abstract class IntegrationTest extends TestContainer {
 
     @Autowired
     private DatabaseCleanup databaseCleanup;
