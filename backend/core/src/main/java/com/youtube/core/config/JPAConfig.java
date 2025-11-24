@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
-@Profile("!websocket-test")
+@Profile("!interaction-test & !notification-test")
 @EntityScan(basePackages = "com.youtube.core")
 @EnableJpaRepositories(basePackages = "com.youtube.core")
 @EnableJpaAuditing

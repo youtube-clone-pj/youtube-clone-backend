@@ -11,7 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(
         classes = com.youtube.live.interaction.InteractionTestApplication.class
 )
-@ActiveProfiles("websocket-test")
+@ActiveProfiles("interaction-test")
 public class IntegrationTest extends TestContainer {
 
     @Autowired
