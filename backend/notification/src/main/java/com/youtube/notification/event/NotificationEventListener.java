@@ -11,6 +11,7 @@ import com.youtube.notification.domain.NotificationWriter;
 import com.youtube.notification.domain.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -27,11 +28,12 @@ public class NotificationEventListener {
     private final ChannelReader channelReader;
     private final LiveStreamingReader liveStreamingReader;
     private final NotificationWriter notificationWriter;
+    private final ApplicationEventPublisher eventPublisher;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Async
     public void onLiveStreamingStarted(final LiveStreamingStartedEvent event) {
-        log.info("라이브 스트리밍 시작 알림 생성 시작 - liveStreamingId: {}, channelId: {}",
+        log.info("라이브 스트리밍 시작 이벤트 수신 - liveStreamingId: {}, channelId: {}",
                 event.liveStreamingId(), event.channelId());
 
         try {
@@ -42,19 +44,25 @@ public class NotificationEventListener {
                     .readSubscribersByChannelId(event.channelId());
 
             if (subscribers.isEmpty()) {
-                log.info("구독자가 없어 알림 생성 생략 - channelId: {}", event.channelId());
+                log.info("구독자가 없어 알림 미생성 - liveStreamingId: {}, channelId: {}",
+                        event.liveStreamingId(), event.channelId());
                 return;
             }
 
             final List<Notification> notifications = notificationWriter
                     .writeForLiveStreamingStart(subscribers, channel, liveStreaming);
 
-            log.info("라이브 스트리밍 시작 알림 생성 완료 - 알림 수: {}, liveStreamingId: {}",
-                    notifications.size(), event.liveStreamingId());
+            // 생성된 알림에 대해 NotificationCreatedEvent 발행
+            notifications.forEach(notification -> {
+                eventPublisher.publishEvent(NotificationCreatedEvent.from(notification));
+            });
+
+            log.info("라이브 스트리밍 시작 알림 생성 및 이벤트 발행 완료 - 알림 수: {}, liveStreamingId: {}, channelId: {}",
+                    notifications.size(), event.liveStreamingId(), event.channelId());
 
         } catch (Exception e) {
-            log.warn("라이브 스트리밍 시작 알림 생성 실패 - liveStreamingId: {}, channelId: {}, error: {}",
-                    event.liveStreamingId(), event.channelId(), e.getMessage(), e);
+            log.warn("라이브 스트리밍 시작 알림 생성 실패 - liveStreamingId: {}, channelId: {}",
+                    event.liveStreamingId(), event.channelId(), e);
         }
     }
 }

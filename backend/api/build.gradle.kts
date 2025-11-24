@@ -27,7 +27,12 @@ dependencies {
     implementation(project(":notification"))
     implementation(project(":common"))
 
+    testImplementation("org.springframework:spring-webflux") // WebTestClient for SSE testing
+    testImplementation("io.projectreactor:reactor-test") // Reactor test utilities
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":live-streaming:interaction")))
     testImplementation(testFixtures(project(":notification")))
+
+    testFixturesImplementation("org.springframework:spring-webflux") // WebTestClient for SSE testing
+    testFixturesImplementation("io.projectreactor:reactor-test") // Reactor test utilities
 }

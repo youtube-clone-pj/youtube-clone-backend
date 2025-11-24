@@ -5,10 +5,12 @@ import com.youtube.core.user.domain.User;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreaming;
 import com.youtube.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class NotificationWriter {
@@ -45,6 +47,11 @@ public class NotificationWriter {
                 .toList();
 
         //TODO bulk insert 고려
-        return notificationRepository.saveAll(notifications);
+        final List<Notification> savedNotifications = notificationRepository.saveAll(notifications);
+
+        log.info("알림 생성 완료 - 알림 수: {}, 수신자 수: {}, 알림 타입: {}",
+                savedNotifications.size(), subscribers.size(), NotificationType.LIVE_STREAMING_STARTED);
+
+        return savedNotifications;
     }
 }

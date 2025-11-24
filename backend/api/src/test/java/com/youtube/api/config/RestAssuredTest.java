@@ -11,16 +11,18 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("api-test")
 @EnableAutoConfiguration
+@EnableAsync
 @ComponentScan(basePackages = {"com.youtube.api", "com.youtube.core", "com.youtube.live", "com.youtube.notification"})
 public class RestAssuredTest extends TestContainer {
 
     @LocalServerPort
-    private int port;
+    protected int port;
 
     @Autowired
     private DatabaseCleanup databaseCleanup;
