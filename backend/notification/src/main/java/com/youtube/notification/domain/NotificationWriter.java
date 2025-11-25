@@ -7,6 +7,7 @@ import com.youtube.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -53,5 +54,16 @@ public class NotificationWriter {
                 savedNotifications.size(), subscribers.size(), NotificationType.LIVE_STREAMING_STARTED);
 
         return savedNotifications;
+    }
+
+    @Transactional
+    public long markAllAsRead(final Long userId) {
+        final List<Notification> unreadNotifications = notificationRepository
+                .findUnreadByReceiverId(userId);
+
+        unreadNotifications.forEach(Notification::markAsRead);
+
+        log.info("모든 알림 읽음 처리 완료 - userId: {}, 처리된 알림 수: {}", userId, unreadNotifications.size());
+        return unreadNotifications.size();
     }
 }

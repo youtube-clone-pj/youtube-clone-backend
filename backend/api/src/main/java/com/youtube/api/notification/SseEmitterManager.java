@@ -59,6 +59,15 @@ public class SseEmitterManager {
         return emitters != null && !emitters.isEmpty();
     }
 
+    public void sendUnreadCount(final Long userId, final long unreadCount) {
+        final Set<SseEmitter> emitters = emittersByUserId.get(userId);
+        if (emitters == null || emitters.isEmpty()) {
+            return;
+        }
+
+        emitters.forEach(emitter -> sendUnreadCountToEmitter(emitter, userId, unreadCount));
+    }
+
     private void removeEmitter(final Long userId, final SseEmitter emitter) {
         emittersByUserId.computeIfPresent(userId, (key, emitters) -> {
             emitters.remove(emitter);
@@ -85,6 +94,17 @@ public class SseEmitterManager {
                     .data(event));
         } catch (IOException e) {
             log.warn("SSE 알림 전송 실패 - userId: {}, notificationId: {}", userId, event.notificationId());
+            removeEmitter(userId, emitter);
+        }
+    }
+
+    private void sendUnreadCountToEmitter(final SseEmitter emitter, final Long userId, final long unreadCount) {
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("unread-count")
+                    .data(unreadCount));
+        } catch (IOException e) {
+            log.warn("SSE 읽지 않은 개수 전송 실패 - userId: {}", userId);
             removeEmitter(userId, emitter);
         }
     }

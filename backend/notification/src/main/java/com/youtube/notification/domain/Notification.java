@@ -50,4 +50,11 @@ public class Notification extends BaseEntity {
     private boolean isRead;
 
     private Instant readAt;
+
+    public void markAsRead() {
+        if (!this.isRead) {
+            this.isRead = true;
+            this.readAt = Instant.now();
+        }
+    }
 }

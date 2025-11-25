@@ -24,4 +24,18 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             @Param("createdAfter") Instant createdAfter,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT COUNT(n) FROM Notification n
+        WHERE n.receiver.id = :receiverId
+        AND n.isRead = false
+        """)
+    long countUnreadByReceiverId(@Param("receiverId") Long receiverId);
+
+    @Query("""
+        SELECT n FROM Notification n
+        WHERE n.receiver.id = :receiverId
+        AND n.isRead = false
+        """)
+    List<Notification> findUnreadByReceiverId(@Param("receiverId") Long receiverId);
 }

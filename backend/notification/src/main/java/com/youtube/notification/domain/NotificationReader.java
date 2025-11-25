@@ -34,4 +34,8 @@ public class NotificationReader {
                 Notification::getId
         );
     }
+
+    public long countUnreadBy(final Long userId) {
+        return notificationRepository.countUnreadByReceiverId(userId);
+    }
 }
