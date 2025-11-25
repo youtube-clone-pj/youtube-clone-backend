@@ -22,7 +22,7 @@ public class NotificationController {
 
     private final NotificationQueryService notificationQueryService;
     private final NotificationService notificationService;
-    private final SseEmitterManager sseEmitterManager;
+    private final NotificationSseManager notificationSseManager;
     private static final String SESSION_USER_ID = "userId";
 
     @GetMapping
@@ -60,7 +60,7 @@ public class NotificationController {
         }
 
         final long updatedCount = notificationService.markAllAsRead(userId);
-        sseEmitterManager.sendUnreadCount(userId, 0);
+        notificationSseManager.sendUnreadCount(userId, 0);
 
         return ResponseEntity.ok(updatedCount);
     }
@@ -72,6 +72,6 @@ public class NotificationController {
             throw new IllegalArgumentException("로그인이 필요합니다");
         }
 
-        return sseEmitterManager.createConnection(userId);
+        return notificationSseManager.createConnection(userId);
     }
 }

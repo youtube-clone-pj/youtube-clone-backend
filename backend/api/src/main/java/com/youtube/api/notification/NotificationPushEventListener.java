@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class NotificationPushEventListener {
 
-    private final SseEmitterManager sseEmitterManager;
+    private final NotificationSseManager notificationSseManager;
     private final NotificationReader notificationReader;
 
     @Async
@@ -22,10 +22,10 @@ public class NotificationPushEventListener {
         final Long receiverId = event.receiverId();
 
         try {
-            if (sseEmitterManager.hasConnection(receiverId)) {
-                sseEmitterManager.sendNotification(receiverId, event);
+            if (notificationSseManager.hasConnection(receiverId)) {
+                notificationSseManager.sendNotification(receiverId, event);
                 final long unreadCount = notificationReader.countUnreadBy(receiverId);
-                sseEmitterManager.sendUnreadCount(receiverId, unreadCount);
+                notificationSseManager.sendUnreadCount(receiverId, unreadCount);
 
                 log.info("알림 전송 성공 (SSE) - notificationId: {}, receiverId: {}, unreadCount: {}",
                         event.notificationId(), receiverId, unreadCount);

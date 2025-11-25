@@ -22,13 +22,13 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class SseEmitterManagerTest {
+class NotificationSseManagerTest {
 
-    private SseEmitterManager sut;
+    private NotificationSseManager sut;
 
     @BeforeEach
     void setUp() {
-        sut = new SseEmitterManager();
+        sut = new NotificationSseManager();
     }
 
     @Test
@@ -270,7 +270,7 @@ class SseEmitterManagerTest {
 
     @SuppressWarnings("unchecked")
     private Set<SseEmitter> getEmittersForUser(final Long userId) throws Exception {
-        final Field field = SseEmitterManager.class.getDeclaredField("emittersByUserId");
+        final Field field = NotificationSseManager.class.getDeclaredField("emittersByUserId");
         field.setAccessible(true);
         final ConcurrentHashMap<Long, Set<SseEmitter>> emittersByUserId =
                 (ConcurrentHashMap<Long, Set<SseEmitter>>) field.get(sut);
@@ -279,7 +279,7 @@ class SseEmitterManagerTest {
 
     @SuppressWarnings("unchecked")
     private void addEmitterDirectly(final Long userId, final SseEmitter emitter) throws Exception {
-        final Field field = SseEmitterManager.class.getDeclaredField("emittersByUserId");
+        final Field field = NotificationSseManager.class.getDeclaredField("emittersByUserId");
         field.setAccessible(true);
         final ConcurrentHashMap<Long, Set<SseEmitter>> emittersByUserId =
                 (ConcurrentHashMap<Long, Set<SseEmitter>>) field.get(sut);

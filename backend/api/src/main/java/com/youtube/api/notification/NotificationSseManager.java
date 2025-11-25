@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Slf4j
-public class SseEmitterManager {
+public class NotificationSseManager {
 
     private static final Long SSE_TIMEOUT = 30 * 60 * 1000L; // 30분
 
