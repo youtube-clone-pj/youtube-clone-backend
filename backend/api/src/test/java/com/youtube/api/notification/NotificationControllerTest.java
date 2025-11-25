@@ -40,9 +40,11 @@ class NotificationControllerTest extends RestAssuredTest {
         final String sessionCookie = TestAuthSupport.login("user@example.com", "password123");
 
         final User receiver = findUserById(userId);
-        testSupport.save(Notification().withReceiver(receiver).build());
-        testSupport.save(Notification().withReceiver(receiver).build());
-        testSupport.save(Notification().withReceiver(receiver).build());
+        testSupport.saveAll(
+                Notification().withReceiver(receiver).build(),
+                Notification().withReceiver(receiver).build(),
+                Notification().withReceiver(receiver).build()
+        );
 
         // when
         final ExtractableResponse<Response> response = given().log().all()
@@ -92,7 +94,8 @@ class NotificationControllerTest extends RestAssuredTest {
                 "/api/v1/notifications/stream",
                 subscriberJsessionId,
                 NotificationCreatedEvent.class,
-                objectMapper
+                objectMapper,
+                "notification"
         );
 
         // when
@@ -122,6 +125,123 @@ class NotificationControllerTest extends RestAssuredTest {
                 });
 
         sseSession.disconnect();
+    }
+
+    @Test
+    @DisplayName("로그인한 사용자가 읽지 않은 알림 개수를 조회한다")
+    void getUnreadCount() {
+        // given
+        final Long userId = TestAuthSupport.signUp("user@example.com", "testuser", "password123").as(Long.class);
+        final String sessionCookie = TestAuthSupport.login("user@example.com", "password123");
+
+        final User receiver = findUserById(userId);
+        testSupport.saveAll(
+                Notification().withReceiver(receiver).withRead(false).build(),
+                Notification().withReceiver(receiver).withRead(false).build(),
+                Notification().withReceiver(receiver).withRead(false).build(),
+                Notification().withReceiver(receiver).withRead(true).build(),
+                Notification().withReceiver(receiver).withRead(true).build()
+        );
+
+        // when
+        final ExtractableResponse<Response> response = given().log().all()
+                .cookie("JSESSIONID", sessionCookie)
+                .when()
+                .get("/api/v1/notifications/unread-count")
+                .then()
+                .log().all()
+                .extract();
+
+        // then
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.as(Long.class)).isEqualTo(3L);
+    }
+
+    @Test
+    @DisplayName("로그인하지 않은 사용자가 읽지 않은 알림 개수를 조회하면 오류가 발생한다")
+    void getUnreadCountWithoutLogin() {
+        // when
+        final ExtractableResponse<Response> response = given().log().all()
+                .when()
+                .get("/api/v1/notifications/unread-count")
+                .then()
+                .log().all()
+                .extract();
+
+        // then
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
+    }
+
+    @Test
+    @DisplayName("로그인한 사용자가 모든 알림을 읽음 처리하면 모든 알림이 읽음 상태로 변경되고 SSE로 읽지 않은 개수가 전송된다")
+    void markAllAsRead() {
+        // given
+        final Long userId = TestAuthSupport.signUp("user@example.com", "testuser", "password123").as(Long.class);
+        final String sessionCookie = TestAuthSupport.login("user@example.com", "password123");
+
+        final User receiver = findUserById(userId);
+        testSupport.saveAll(
+                Notification().withReceiver(receiver).withRead(false).build(),
+                Notification().withReceiver(receiver).withRead(false).build(),
+                Notification().withReceiver(receiver).withRead(false).build()
+        );
+
+        final TestSseSession<Long> sseSession = TestSseSession.connect(
+                port,
+                "/api/v1/notifications/stream",
+                sessionCookie,
+                Long.class,
+                objectMapper,
+                "unread-count"
+        );
+
+        // when
+        final ExtractableResponse<Response> response = given().log().all()
+                .cookie("JSESSIONID", sessionCookie)
+                .when()
+                .post("/api/v1/notifications/read-all")
+                .then()
+                .log().all()
+                .extract();
+
+        // then
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.as(Long.class)).isEqualTo(3L);
+
+        // DB에서 실제로 읽음 처리되었는지 확인
+        final ExtractableResponse<Response> unreadCountResponse = given()
+                .cookie("JSESSIONID", sessionCookie)
+                .when()
+                .get("/api/v1/notifications/unread-count")
+                .then()
+                .extract();
+
+        assertThat(unreadCountResponse.as(Long.class)).isEqualTo(0L);
+
+        // SSE를 통해 읽지 않은 개수가 0으로 전송되었는지 확인
+        await().atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    final Long unreadCount = sseSession.getLatestEvent();
+                    assertThat(unreadCount).isNotNull();
+                    assertThat(unreadCount).isEqualTo(0L);
+                });
+
+        sseSession.disconnect();
+    }
+
+    @Test
+    @DisplayName("로그인하지 않은 사용자가 모든 알림을 읽음 처리하려고 하면 오류가 발생한다")
+    void markAllAsReadWithoutLogin() {
+        // when
+        final ExtractableResponse<Response> response = given().log().all()
+                .when()
+                .post("/api/v1/notifications/read-all")
+                .then()
+                .log().all()
+                .extract();
+
+        // then
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 
     private User findUserById(final Long userId) {

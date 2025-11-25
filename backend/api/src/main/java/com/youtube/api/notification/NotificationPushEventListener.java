@@ -1,5 +1,6 @@
 package com.youtube.api.notification;
 
+import com.youtube.notification.domain.NotificationReader;
 import com.youtube.notification.event.NotificationCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class NotificationPushEventListener {
 
-    private final SseEmitterManager sseEmitterManager;
+    private final NotificationSseManager notificationSseManager;
+    private final NotificationReader notificationReader;
 
     @Async
     @EventListener
@@ -20,11 +22,13 @@ public class NotificationPushEventListener {
         final Long receiverId = event.receiverId();
 
         try {
-            // SSE 연결이 있으면 SSE로 전송
-            if (sseEmitterManager.hasConnection(receiverId)) {
-                sseEmitterManager.sendNotification(receiverId, event);
-                log.info("알림 전송 성공 (SSE) - notificationId: {}, receiverId: {}",
-                        event.notificationId(), receiverId);
+            if (notificationSseManager.hasConnection(receiverId)) {
+                notificationSseManager.sendNotification(receiverId, event);
+                final long unreadCount = notificationReader.countUnreadBy(receiverId);
+                notificationSseManager.sendUnreadCount(receiverId, unreadCount);
+
+                log.info("알림 전송 성공 (SSE) - notificationId: {}, receiverId: {}, unreadCount: {}",
+                        event.notificationId(), receiverId, unreadCount);
             } else {
                 // TODO: WebPush 전송 구현 예정
                 log.debug("SSE 연결 없음, WebPush 전송 예정 - notificationId: {}, receiverId: {}",

@@ -26,14 +26,17 @@ public class TestSseSession<T> {
     private final ConcurrentLinkedQueue<T> receivedEvents = new ConcurrentLinkedQueue<>();
     private final Class<T> eventType;
     private final ObjectMapper objectMapper;
+    private final String eventName;
     private Disposable subscription;
 
     private TestSseSession(
             final Class<T> eventType,
-            final ObjectMapper objectMapper
+            final ObjectMapper objectMapper,
+            final String eventName
     ) {
         this.eventType = eventType;
         this.objectMapper = objectMapper;
+        this.eventName = eventName;
     }
 
     /**
@@ -45,6 +48,7 @@ public class TestSseSession<T> {
      * @param jsessionId HTTP 세션 ID (JSESSIONID 쿠키 값). null인 경우 쿠키 없이 연결
      * @param eventType 수신할 이벤트 타입
      * @param objectMapper JSON 파싱용 ObjectMapper
+     * @param eventName 수신할 SSE 이벤트 이름 (예: "notification", "unread-count")
      * @param <T> 수신할 이벤트의 타입
      * @return 연결된 TestSseSession 인스턴스
      */
@@ -54,9 +58,10 @@ public class TestSseSession<T> {
             final String path,
             final String jsessionId,
             final Class<T> eventType,
-            final ObjectMapper objectMapper
+            final ObjectMapper objectMapper,
+            final String eventName
     ) {
-        final TestSseSession<T> session = new TestSseSession<>(eventType, objectMapper);
+        final TestSseSession<T> session = new TestSseSession<>(eventType, objectMapper, eventName);
 
         final WebTestClient webTestClient = WebTestClient.bindToServer()
                 .baseUrl(baseUrl + ":" + port)
@@ -74,7 +79,7 @@ public class TestSseSession<T> {
                 .getResponseBody();
 
         session.subscription = eventStream
-                .filter(sse -> "notification".equals(sse.event()))
+                .filter(sse -> eventName.equals(sse.event()))
                 .subscribe(
                         sse -> {
                             try {
@@ -83,7 +88,7 @@ public class TestSseSession<T> {
                                         eventType
                                 );
                                 session.receivedEvents.add(event);
-                                log.debug("SSE 이벤트 수신 - eventName: notification, data: {}", sse.data());
+                                log.debug("SSE 이벤트 수신 - eventName: {}, data: {}", eventName, sse.data());
                             } catch (Exception e) {
                                 log.error("SSE 이벤트 파싱 실패 - error: {}", e.getMessage(), e);
                                 throw new RuntimeException(e);
@@ -96,7 +101,7 @@ public class TestSseSession<T> {
                         }
                 );
 
-        log.info("SSE 연결 성공 - URL: {}:{}{}", baseUrl, port, path);
+        log.info("SSE 연결 성공 - URL: {}:{}{}, eventName: {}", baseUrl, port, path, eventName);
         return session;
     }
 
@@ -105,9 +110,10 @@ public class TestSseSession<T> {
             final String path,
             final String jsessionId,
             final Class<T> eventType,
-            final ObjectMapper objectMapper
+            final ObjectMapper objectMapper,
+            final String eventName
     ) {
-        return connect("http://localhost", port, path, jsessionId, eventType, objectMapper);
+        return connect("http://localhost", port, path, jsessionId, eventType, objectMapper, eventName);
     }
 
     public List<T> getReceivedEvents() {

@@ -44,6 +44,8 @@ public class SubscriptionWriter {
 
     @Transactional
     public void subscribe(final User subscriber, final Channel channel) {
+        SubscriptionPolicy.validateNotSelfSubscription(subscriber.getId(), channel);
+
         final Optional<Subscription> existingSubscription = subscriptionReader.readBy(
                 subscriber.getId(),
                 channel.getId()

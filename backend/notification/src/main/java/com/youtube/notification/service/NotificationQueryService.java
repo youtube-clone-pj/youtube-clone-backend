@@ -26,4 +26,8 @@ public class NotificationQueryService {
 
         return NotificationReadResponse.of(page);
     }
+
+    public long getUnreadCount(final Long userId) {
+        return notificationReader.countUnreadBy(userId);
+    }
 }

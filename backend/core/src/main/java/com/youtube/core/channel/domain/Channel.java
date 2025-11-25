@@ -29,4 +29,8 @@ public class Channel extends BaseEntity {
     private String description;
     private String profileImageUrl;
     private String bannerImageUrl;
+
+    public boolean isOwnedBy(final Long userId) {
+        return this.user.getId().equals(userId);
+    }
 }

@@ -22,13 +22,13 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class SseEmitterManagerTest {
+class NotificationSseManagerTest {
 
-    private SseEmitterManager sut;
+    private NotificationSseManager sut;
 
     @BeforeEach
     void setUp() {
-        sut = new SseEmitterManager();
+        sut = new NotificationSseManager();
     }
 
     @Test
@@ -221,8 +221,42 @@ class SseEmitterManagerTest {
         }
     }
 
-    // Helper methods
+    @Test
+    @DisplayName("연결이 없는 유저에게 읽지 않은 알림 개수를 전송해도 예외가 발생하지 않는다")
+    void sendUnreadCountToUserWithoutConnectionDoesNotThrowException() {
+        // given
+        final Long userId = 1L;
+        final long unreadCount = 5L;
 
+        // when & then
+        assertThatCode(() -> sut.sendUnreadCount(userId, unreadCount))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("읽지 않은 알림 개수를 전송하면 해당 유저의 모든 연결에 전달된다")
+    void sendUnreadCountToAllEmittersForUser() throws Exception {
+        // given
+        final Long userId = 1L;
+        final long unreadCount = 3L;
+
+        final SseEmitter spyEmitter1 = spy(new SseEmitter());
+        final SseEmitter spyEmitter2 = spy(new SseEmitter());
+
+        doNothing().when(spyEmitter1).send(any(SseEmitter.SseEventBuilder.class));
+        doNothing().when(spyEmitter2).send(any(SseEmitter.SseEventBuilder.class));
+
+        addEmitterDirectly(userId, spyEmitter1);
+        addEmitterDirectly(userId, spyEmitter2);
+
+        // when
+        sut.sendUnreadCount(userId, unreadCount);
+
+        // then
+        verify(spyEmitter1, times(1)).send(any(SseEmitter.SseEventBuilder.class));
+        verify(spyEmitter2, times(1)).send(any(SseEmitter.SseEventBuilder.class));
+    }
+    
     private NotificationCreatedEvent createTestEvent() {
         return new NotificationCreatedEvent(
                 1L,
@@ -236,7 +270,7 @@ class SseEmitterManagerTest {
 
     @SuppressWarnings("unchecked")
     private Set<SseEmitter> getEmittersForUser(final Long userId) throws Exception {
-        final Field field = SseEmitterManager.class.getDeclaredField("emittersByUserId");
+        final Field field = NotificationSseManager.class.getDeclaredField("emittersByUserId");
         field.setAccessible(true);
         final ConcurrentHashMap<Long, Set<SseEmitter>> emittersByUserId =
                 (ConcurrentHashMap<Long, Set<SseEmitter>>) field.get(sut);
@@ -245,7 +279,7 @@ class SseEmitterManagerTest {
 
     @SuppressWarnings("unchecked")
     private void addEmitterDirectly(final Long userId, final SseEmitter emitter) throws Exception {
-        final Field field = SseEmitterManager.class.getDeclaredField("emittersByUserId");
+        final Field field = NotificationSseManager.class.getDeclaredField("emittersByUserId");
         field.setAccessible(true);
         final ConcurrentHashMap<Long, Set<SseEmitter>> emittersByUserId =
                 (ConcurrentHashMap<Long, Set<SseEmitter>>) field.get(sut);
