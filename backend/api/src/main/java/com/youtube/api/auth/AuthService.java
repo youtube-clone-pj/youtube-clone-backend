@@ -8,9 +8,11 @@ import com.youtube.core.user.domain.User;
 import com.youtube.core.user.domain.UserReader;
 import com.youtube.core.user.domain.UserWriter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -44,6 +46,8 @@ public class AuthService {
         if (!PasswordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BaseException(AuthErrorCode.PASSWORD_MISMATCH);
         }
+
+        log.info("유저 로그인 성공 - userId: {}", user.getId());
 
         return LoginResponse.from(user);
     }
