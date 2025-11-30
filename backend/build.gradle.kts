@@ -29,6 +29,7 @@ val restAssuredVersion: String by project
 val testContainerVersion: String by project
 val testContainerMySqlVersion: String by project
 val querydslVersion: String by project
+val awaitilityVersion: String by project
 subprojects {
 	plugins.apply("java")
 	plugins.apply("org.springframework.boot")
@@ -39,6 +40,8 @@ subprojects {
 		compileOnly("org.projectlombok:lombok:${lombokVersion}")
 		annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 
+		implementation("com.fasterxml.jackson.core:jackson-databind")
+
 		testImplementation("org.springframework.boot:spring-boot-starter-test")
 		testImplementation("org.springframework.boot:spring-boot-starter-data-jpa")
 		testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -47,6 +50,7 @@ subprojects {
 		testImplementation("io.rest-assured:rest-assured:${restAssuredVersion}")
 		testImplementation("com.querydsl:querydsl-jpa:${querydslVersion}:jakarta")
 		testImplementation("com.querydsl:querydsl-apt:${querydslVersion}:jakarta")
+		testImplementation("org.awaitility:awaitility:${awaitilityVersion}")
 
 		testFixturesCompileOnly("org.projectlombok:lombok:${lombokVersion}")
 		testFixturesAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
