@@ -85,8 +85,8 @@ class LiveStreamingControllerTest extends RestAssuredTest {
     }
 
     @Test
-    @DisplayName("라이브 스트리밍의 좋아요 개수를 조회한다")
-    void getLikeCount_ReturnsLikeCount() {
+    @DisplayName("로그인한 사용자가 좋아요 상태를 조회하면 좋아요 개수와 자신의 반응 상태를 받는다")
+    void getLikeStatus_Authenticated_ReturnsLikeCountAndUserReactionStatus() {
         // given
         final Long userId1 = TestAuthSupport.signUp(
                 "user1@example.com",
@@ -94,14 +94,13 @@ class LiveStreamingControllerTest extends RestAssuredTest {
                 "password123!"
         ).as(Long.class);
 
-        final Long userId2 = TestAuthSupport.signUp(
+        TestAuthSupport.signUp(
                 "user2@example.com",
                 "유저2",
                 "password123!"
-        ).as(Long.class);
+        );
 
         final User user1 = UserBuilder.User().withId(userId1).build();
-        final User user2 = UserBuilder.User().withId(userId2).build();
         final Channel channel = testSupport.save(Channel().withUser(user1).build());
         final LiveStreaming liveStreaming = testSupport.save(LiveStreaming().withChannel(channel).build());
 
@@ -124,16 +123,72 @@ class LiveStreamingControllerTest extends RestAssuredTest {
                 .when()
                 .post("/api/v1/livestreams/{liveStreamingId}/likes", liveStreaming.getId());
 
-        // when
+        // when - user1이 좋아요 상태를 조회
         final ExtractableResponse<Response> response = given()
+                .cookie("JSESSIONID", jsessionId1)
                 .when()
-                .get("/api/v1/livestreams/{liveStreamingId}/likes/count", liveStreaming.getId())
+                .get("/api/v1/livestreams/{liveStreamingId}/likes", liveStreaming.getId())
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .extract();
 
         // then
-        assertThat(response.as(Integer.class)).isEqualTo(2);
+        assertThat(response.jsonPath().getInt("likeCount")).isEqualTo(2);
+        assertThat(response.jsonPath().getBoolean("isLiked")).isTrue();
+        assertThat(response.jsonPath().getBoolean("isDisliked")).isFalse();
+    }
+
+    @Test
+    @DisplayName("로그인하지 않은 사용자가 좋아요 상태를 조회하면 좋아요 개수만 받는다")
+    void getLikeStatus_Unauthenticated_ReturnsLikeCountOnly() {
+        // given
+        final Long userId1 = TestAuthSupport.signUp(
+                "user1@example.com",
+                "유저1",
+                "password123!"
+        ).as(Long.class);
+
+        TestAuthSupport.signUp(
+                "user2@example.com",
+                "유저2",
+                "password123!"
+        );
+
+        final User user1 = UserBuilder.User().withId(userId1).build();
+        final Channel channel = testSupport.save(Channel().withUser(user1).build());
+        final LiveStreaming liveStreaming = testSupport.save(LiveStreaming().withChannel(channel).build());
+
+        final String jsessionId1 = TestAuthSupport.login("user1@example.com", "password123!");
+        final String jsessionId2 = TestAuthSupport.login("user2@example.com", "password123!");
+        final ReactionCreateRequest request = new ReactionCreateRequest(ReactionType.LIKE);
+
+        // 두 명의 사용자가 좋아요를 누름
+        given()
+                .cookie("JSESSIONID", jsessionId1)
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/api/v1/livestreams/{liveStreamingId}/likes", liveStreaming.getId());
+
+        given()
+                .cookie("JSESSIONID", jsessionId2)
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/api/v1/livestreams/{liveStreamingId}/likes", liveStreaming.getId());
+
+        // when - 로그인하지 않은 사용자가 좋아요 상태를 조회
+        final ExtractableResponse<Response> response = given()
+                .when()
+                .get("/api/v1/livestreams/{liveStreamingId}/likes", liveStreaming.getId())
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract();
+
+        // then - 좋아요 개수는 2이고, 반응 상태는 false
+        assertThat(response.jsonPath().getInt("likeCount")).isEqualTo(2);
+        assertThat(response.jsonPath().getBoolean("isLiked")).isFalse();
+        assertThat(response.jsonPath().getBoolean("isDisliked")).isFalse();
     }
 
     @Test
