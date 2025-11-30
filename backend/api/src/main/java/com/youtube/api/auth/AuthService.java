@@ -1,6 +1,8 @@
 package com.youtube.api.auth;
 
+import com.youtube.common.exception.AuthErrorCode;
 import com.youtube.api.util.PasswordEncoder;
+import com.youtube.common.exception.BaseException;
 import com.youtube.core.channel.domain.ChannelWriter;
 import com.youtube.core.user.domain.User;
 import com.youtube.core.user.domain.UserReader;
@@ -20,7 +22,7 @@ public class AuthService {
     @Transactional
     public Long signUp(final RegisterRequest request) {
         if(userReader.existsBy(request.getEmail())) {
-            throw new IllegalStateException("이미 가입된 이메일입니다");
+            throw new BaseException(AuthErrorCode.ALREADY_REGISTERED_EMAIL);
         }
 
         final Long userId = userWriter.write(
@@ -40,7 +42,7 @@ public class AuthService {
         final User user = userReader.readBy(request.getEmail());
 
         if (!PasswordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
+            throw new BaseException(AuthErrorCode.PASSWORD_MISMATCH);
         }
 
         return LoginResponse.from(user);

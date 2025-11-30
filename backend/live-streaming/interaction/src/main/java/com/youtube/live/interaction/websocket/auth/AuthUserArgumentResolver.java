@@ -1,5 +1,7 @@
 package com.youtube.live.interaction.websocket.auth;
 
+import com.youtube.common.exception.AuthErrorCode;
+import com.youtube.common.exception.BaseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
@@ -43,14 +45,14 @@ public class AuthUserArgumentResolver implements HandlerMethodArgumentResolver {
         }
 
         log.error("예상하지 못한 Principal 타입 - type: {}", principal != null ? principal.getClass().getName() : "null");
-        throw new IllegalStateException("인증 정보 처리 오류");
+        throw new BaseException(AuthErrorCode.AUTHENTICATION_PROCESSING_ERROR);
     }
 
     private Object handleUnAuthUser(final MethodParameter parameter) {
         final AuthUser authUser = parameter.getParameterAnnotation(AuthUser.class);
         if (authUser != null && authUser.required()) {
             log.warn("인증이 필요한 기능에 비회원이 접근했습니다");
-            throw new IllegalStateException("로그인이 필요한 기능입니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         return null;

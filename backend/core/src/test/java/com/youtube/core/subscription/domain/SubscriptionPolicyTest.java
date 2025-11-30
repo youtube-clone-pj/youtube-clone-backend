@@ -1,6 +1,8 @@
 package com.youtube.core.subscription.domain;
 
+import com.youtube.common.exception.BaseException;
 import com.youtube.core.channel.domain.Channel;
+import com.youtube.core.subscription.exception.SubscriptionErrorCode;
 import com.youtube.core.user.domain.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,8 +23,8 @@ class SubscriptionPolicyTest {
 
         // when & then
         assertThatThrownBy(() -> SubscriptionPolicy.validateNotSelfSubscription(user.getId(), channel))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("자기 자신의 채널은 구독할 수 없습니다.");
+                .extracting(e -> ((BaseException) e).getErrorCode())
+                .isEqualTo(SubscriptionErrorCode.SELF_SUBSCRIPTION_NOT_ALLOWED);
     }
 
     @Test

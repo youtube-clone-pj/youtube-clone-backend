@@ -1,6 +1,8 @@
 package com.youtube.api.config.resolver;
 
 import com.youtube.common.CursorQuery;
+import com.youtube.common.exception.BaseException;
+import com.youtube.common.exception.CommonErrorCode;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -52,7 +54,7 @@ public class CursorQueryArgumentResolver implements HandlerMethodArgumentResolve
         try {
             return Long.parseLong(cursorParam);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("cursor 파라미터는 Long 타입이어야 합니다: " + cursorParam);
+            throw new BaseException(CommonErrorCode.INVALID_INPUT);
         }
     }
 
@@ -63,7 +65,7 @@ public class CursorQueryArgumentResolver implements HandlerMethodArgumentResolve
         try {
             return Integer.parseInt(sizeParam);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("size 파라미터는 Integer 타입이어야 합니다: " + sizeParam);
+            throw new BaseException(CommonErrorCode.INVALID_INPUT);
         }
     }
 }

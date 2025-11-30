@@ -1,5 +1,7 @@
 package com.youtube.core.user.domain;
 
+import com.youtube.common.exception.BaseException;
+import com.youtube.core.user.exception.UserErrorCode;
 import com.youtube.core.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,11 +18,11 @@ public class UserReader {
 
     public User readBy(final String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다"));
+                .orElseThrow(() -> new BaseException(UserErrorCode.USER_NOT_FOUND));
     }
 
     public User readBy(final Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다"));
+                .orElseThrow(() -> new BaseException(UserErrorCode.USER_NOT_FOUND));
     }
 }

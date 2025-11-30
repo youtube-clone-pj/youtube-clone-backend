@@ -81,7 +81,7 @@ class LiveStreamingControllerTest extends RestAssuredTest {
                 .when()
                 .post("/api/v1/livestreams/{liveStreamingId}/likes", liveStreaming.getId())
                 .then()
-                .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
     }
 
     @Test
@@ -190,6 +190,6 @@ class LiveStreamingControllerTest extends RestAssuredTest {
                 .when()
                 .post("/api/v1/livestreams")
                 .then()
-                .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
     }
 }

@@ -1,5 +1,7 @@
 package com.youtube.core.subscription.domain;
 
+import com.youtube.common.exception.BaseException;
+import com.youtube.core.subscription.exception.SubscriptionErrorCode;
 import com.youtube.core.subscription.repository.SubscriptionRepository;
 import com.youtube.core.user.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,7 @@ public class SubscriptionReader {
 
     public Subscription readByOrThrow(final Long subscriberId, final Long channelId) {
         return subscriptionRepository.findBySubscriberIdAndChannelId(subscriberId, channelId)
-                .orElseThrow(() -> new IllegalArgumentException("구독하지 않은 채널입니다"));
+                .orElseThrow(() -> new BaseException(SubscriptionErrorCode.NOT_SUBSCRIBED));
     }
 
     public Optional<Subscription> readDeletedBy(final Long subscriberId, final Long channelId) {

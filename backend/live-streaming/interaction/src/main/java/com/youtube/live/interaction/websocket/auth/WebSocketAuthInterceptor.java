@@ -1,5 +1,7 @@
 package com.youtube.live.interaction.websocket.auth;
 
+import com.youtube.common.exception.AuthErrorCode;
+import com.youtube.common.exception.BaseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -31,7 +33,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             } else {
                 log.error("WebSocket 연결 실패 - sessionId: {}, userId: {}, username 존재 여부: {}",
                         accessor.getSessionId(), userId, username != null);
-                throw new IllegalStateException("인증 정보가 올바르지 않습니다");
+                throw new BaseException(AuthErrorCode.INVALID_CREDENTIALS);
             }
         }
 

@@ -1,5 +1,7 @@
 package com.youtube.api.subscription;
 
+import com.youtube.common.exception.AuthErrorCode;
+import com.youtube.common.exception.BaseException;
 import com.youtube.core.subscription.service.SubscriptionQueryService;
 import com.youtube.core.subscription.service.SubscriptionService;
 import com.youtube.api.subscription.dto.SubscribeResponse;
@@ -26,7 +28,7 @@ public class SubscriptionController {
     ) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         subscriptionService.subscribe(userId, channelId);
@@ -41,7 +43,7 @@ public class SubscriptionController {
     ) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         subscriptionService.unsubscribe(userId, channelId, Instant.now());

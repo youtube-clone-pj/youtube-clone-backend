@@ -1,5 +1,7 @@
 package com.youtube.api.livestreaming;
 
+import com.youtube.common.exception.AuthErrorCode;
+import com.youtube.common.exception.BaseException;
 import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreateRequest;
 import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreateResponse;
 import com.youtube.live.interaction.livestreaming.controller.dto.ReactionCreateRequest;
@@ -32,7 +34,7 @@ public class LiveStreamingController {
     ) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         final ReactionToggleResult toggleResult = liveStreamingReactionService.toggleReaction(
@@ -65,7 +67,7 @@ public class LiveStreamingController {
     ) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         final LiveStreamingCreateResponse response = liveStreamingService.startLiveStreaming(userId, request);
