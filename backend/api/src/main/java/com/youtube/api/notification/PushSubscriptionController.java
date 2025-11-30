@@ -1,5 +1,7 @@
 package com.youtube.api.notification;
 
+import com.youtube.common.exception.AuthErrorCode;
+import com.youtube.common.exception.BaseException;
 import com.youtube.notification.service.PushSubscriptionService;
 import com.youtube.notification.service.dto.PushSubscribeRequest;
 import com.youtube.notification.service.dto.PushUnsubscribeRequest;
@@ -23,7 +25,7 @@ public class PushSubscriptionController {
     ) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         pushSubscriptionService.subscribe(userId, request);
@@ -38,7 +40,7 @@ public class PushSubscriptionController {
     ) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         pushSubscriptionService.unsubscribe(request.endpoint());
@@ -52,7 +54,7 @@ public class PushSubscriptionController {
     ) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         pushSubscriptionService.deactivateAllSubscriptions(userId);
@@ -67,7 +69,7 @@ public class PushSubscriptionController {
     ) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         pushSubscriptionService.reactivateSubscription(userId, request.endpoint());

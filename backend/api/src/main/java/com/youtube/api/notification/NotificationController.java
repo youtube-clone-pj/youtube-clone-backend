@@ -1,7 +1,9 @@
 package com.youtube.api.notification;
 
+import com.youtube.common.exception.AuthErrorCode;
 import com.youtube.api.config.resolver.Cursor;
 import com.youtube.common.CursorQuery;
+import com.youtube.common.exception.BaseException;
 import com.youtube.notification.service.dto.NotificationReadResponse;
 import com.youtube.notification.service.NotificationService;
 import com.youtube.notification.service.NotificationQueryService;
@@ -32,7 +34,7 @@ public class NotificationController {
     ) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         final NotificationReadResponse response = notificationQueryService
@@ -45,7 +47,7 @@ public class NotificationController {
     public ResponseEntity<Long> getUnreadCount(final HttpSession session) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         final long unreadCount = notificationQueryService.getUnreadCount(userId);
@@ -56,7 +58,7 @@ public class NotificationController {
     public ResponseEntity<Long> markAllAsRead(final HttpSession session) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         final long updatedCount = notificationService.markAllAsRead(userId);
@@ -69,7 +71,7 @@ public class NotificationController {
     public SseEmitter stream(final HttpSession session) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다");
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         return notificationSseManager.createConnection(userId);

@@ -1,6 +1,8 @@
 package com.youtube.api.notification;
 
+import com.youtube.common.exception.BaseException;
 import com.youtube.notification.event.NotificationCreatedEvent;
+import com.youtube.notification.exception.NotificationErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -83,7 +85,7 @@ public class NotificationSseManager {
         } catch (IOException e) {
             log.warn("SSE 초기 연결 이벤트 전송 실패 - userId: {}", userId);
             removeEmitter(userId, emitter);
-            throw new IllegalStateException("SSE 초기 연결 실패", e);
+            throw new BaseException(NotificationErrorCode.SSE_CONNECTION_FAILED, e);
         }
     }
 

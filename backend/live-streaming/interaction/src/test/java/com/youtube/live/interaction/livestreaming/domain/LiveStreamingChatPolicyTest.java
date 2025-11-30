@@ -1,5 +1,7 @@
 package com.youtube.live.interaction.livestreaming.domain;
 
+import com.youtube.common.exception.BaseException;
+import com.youtube.live.interaction.exception.LiveStreamingErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -27,7 +29,7 @@ class LiveStreamingChatPolicyTest {
     void validateWhenNotLive(final LiveStreamingStatus status) {
         // when & then
         assertThatThrownBy(() -> LiveStreamingChatPolicy.validate(status))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("채팅은 라이브 방송 중에만 가능합니다");
+                .extracting(e -> ((BaseException) e).getErrorCode())
+                .isEqualTo(LiveStreamingErrorCode.CHAT_NOT_ALLOWED_WHEN_OFFLINE);
     }
 }
