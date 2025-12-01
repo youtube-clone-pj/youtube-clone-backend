@@ -21,7 +21,7 @@ public class ChannelWriter {
                         .build()
         ).getId();
 
-        log.info("채널 생성 완료 - channelId: {}, userId: {}", newChannelId, user.getId());
+        log.info("Channel 생성 완료 - channelId: {}, userId: {}", newChannelId, user.getId());
 
         return newChannelId;
     }

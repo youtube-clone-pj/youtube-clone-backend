@@ -95,7 +95,7 @@ public class NotificationSseManager {
                     .name("notification")
                     .data(event));
         } catch (IOException e) {
-            log.warn("SSE 알림 전송 실패 - userId: {}, notificationId: {}", userId, event.notificationId());
+            log.warn("SSE Notification 전송 실패 - userId: {}, notificationId: {}", userId, event.notificationId());
             removeEmitter(userId, emitter);
         }
     }

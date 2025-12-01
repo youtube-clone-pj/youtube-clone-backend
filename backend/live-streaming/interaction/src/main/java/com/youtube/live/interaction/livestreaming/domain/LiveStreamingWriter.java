@@ -28,7 +28,7 @@ public class LiveStreamingWriter {
                 .status(status)
                 .build();
 
-        log.info("라이브 스트리밍 생성 - liveStreamingId: {}, channelId: {}",
+        log.info("LiveStreaming 생성 - liveStreamingId: {}, channelId: {}",
                 liveStreaming.getId(), liveStreaming.getChannel().getId());
 
         return liveStreamingRepository.save(liveStreaming);

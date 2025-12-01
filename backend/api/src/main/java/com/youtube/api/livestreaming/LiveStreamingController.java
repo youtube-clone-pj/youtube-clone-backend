@@ -4,6 +4,7 @@ import com.youtube.common.exception.AuthErrorCode;
 import com.youtube.common.exception.BaseException;
 import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreateRequest;
 import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreateResponse;
+import com.youtube.live.interaction.livestreaming.service.dto.LikeStatusResponse;
 import com.youtube.live.interaction.livestreaming.controller.dto.ReactionCreateRequest;
 import com.youtube.live.interaction.livestreaming.controller.dto.ReactionCreateResponse;
 import com.youtube.live.interaction.livestreaming.service.LiveStreamingReactionService;
@@ -54,10 +55,14 @@ public class LiveStreamingController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{liveStreamingId}/likes/count")
-    public ResponseEntity<Integer> getLikeCount(@PathVariable final Long liveStreamingId) {
-        final int likeCount = liveStreamingReactionQueryService.getLikeCount(liveStreamingId);
-        return ResponseEntity.ok(likeCount);
+    @GetMapping("/{liveStreamingId}/likes")
+    public ResponseEntity<LikeStatusResponse> getLikeStatus(
+            @PathVariable final Long liveStreamingId,
+            final HttpSession session
+    ) {
+        final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
+        final LikeStatusResponse response = liveStreamingReactionQueryService.getLikeStatus(liveStreamingId, userId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping

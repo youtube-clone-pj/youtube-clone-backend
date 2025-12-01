@@ -52,7 +52,7 @@ public class SubscriptionWriter {
         );
 
         if (existingSubscription.isPresent()) {
-            log.info("이미 구독 중인 채널 - subscriberId: {}, channelId: {}",
+            log.info("이미 구독 중인 Channel - subscriberId: {}, channelId: {}",
                     subscriber.getId(), channel.getId());
             return;
         }
