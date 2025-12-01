@@ -22,7 +22,7 @@ public class UserWriter {
                         .build()
         ).getId();
 
-        log.info("유저 회원가입 성공 - userId: {}", newUserId);
+        log.info("User 회원가입 성공 - userId: {}", newUserId);
 
         return newUserId;
     }

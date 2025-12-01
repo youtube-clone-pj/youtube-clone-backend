@@ -50,7 +50,7 @@ public class NotificationWriter {
         //TODO bulk insert 고려
         final List<Notification> savedNotifications = notificationRepository.saveAll(notifications);
 
-        log.info("알림 생성 완료 - 알림 수: {}, 수신자 수: {}, 알림 타입: {}",
+        log.info("Notification 생성 완료 - 알림 수: {}, 수신자 수: {}, 알림 타입: {}",
                 savedNotifications.size(), subscribers.size(), NotificationType.LIVE_STREAMING_STARTED);
 
         return savedNotifications;
@@ -63,7 +63,7 @@ public class NotificationWriter {
 
         unreadNotifications.forEach(Notification::markAsRead);
 
-        log.info("모든 알림 읽음 처리 완료 - userId: {}, 처리된 알림 수: {}", userId, unreadNotifications.size());
+        log.info("모든 Notification 읽음 처리 완료 - userId: {}, 처리된 알림 수: {}", userId, unreadNotifications.size());
         return unreadNotifications.size();
     }
 }

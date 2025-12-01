@@ -47,7 +47,7 @@ public class AuthService {
             throw new BaseException(AuthErrorCode.PASSWORD_MISMATCH);
         }
 
-        log.info("유저 로그인 성공 - userId: {}", user.getId());
+        log.info("User 로그인 성공 - userId: {}", user.getId());
 
         return LoginResponse.from(user);
     }

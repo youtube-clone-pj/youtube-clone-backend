@@ -33,7 +33,7 @@ public class NotificationEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Async
     public void onLiveStreamingStarted(final LiveStreamingStartedEvent event) {
-        log.info("라이브 스트리밍 시작 이벤트 수신 - liveStreamingId: {}, channelId: {}",
+        log.info("LiveStreaming 시작 이벤트 수신 - liveStreamingId: {}, channelId: {}",
                 event.liveStreamingId(), event.channelId());
 
         try {
@@ -44,7 +44,7 @@ public class NotificationEventListener {
                     .readSubscribersByChannelId(event.channelId());
 
             if (subscribers.isEmpty()) {
-                log.info("구독자가 없어 알림 미생성 - liveStreamingId: {}, channelId: {}",
+                log.info("구독자가 없어 Notification 미생성 - liveStreamingId: {}, channelId: {}",
                         event.liveStreamingId(), event.channelId());
                 return;
             }
@@ -57,11 +57,11 @@ public class NotificationEventListener {
                 eventPublisher.publishEvent(NotificationCreatedEvent.from(notification));
             });
 
-            log.info("라이브 스트리밍 시작 알림 생성 및 이벤트 발행 완료 - 알림 수: {}, liveStreamingId: {}, channelId: {}",
+            log.info("LiveStreaming 시작 Notification 생성 및 이벤트 발행 완료 - 알림 수: {}, liveStreamingId: {}, channelId: {}",
                     notifications.size(), event.liveStreamingId(), event.channelId());
 
         } catch (Exception e) {
-            log.warn("라이브 스트리밍 시작 알림 생성 실패 - liveStreamingId: {}, channelId: {}",
+            log.warn("LiveStreaming 시작 Notification 생성 실패 - liveStreamingId: {}, channelId: {}",
                     event.liveStreamingId(), event.channelId(), e);
         }
     }
