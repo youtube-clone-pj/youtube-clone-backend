@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 public interface LiveStreamingRepository extends JpaRepository<LiveStreaming, Long> {
 
     @Query("""
-    SELECT new com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingMetadataResponse(
+    SELECT new com.youtube.live.interaction.livestreaming.repository.dto.LiveStreamingMetadataResponse(
         c.id, c.channelName, c.profileImageUrl, ls.title, ls.description, ls.createdDate, COUNT(s.id)
     )
     FROM LiveStreaming ls
