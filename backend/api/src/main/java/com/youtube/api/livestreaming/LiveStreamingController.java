@@ -10,6 +10,8 @@ import com.youtube.live.interaction.livestreaming.controller.dto.ReactionCreateR
 import com.youtube.live.interaction.livestreaming.service.LiveStreamingReactionService;
 import com.youtube.live.interaction.livestreaming.service.LiveStreamingReactionQueryService;
 import com.youtube.live.interaction.livestreaming.service.LiveStreamingService;
+import com.youtube.live.interaction.livestreaming.service.LiveStreamingQueryService;
+import com.youtube.live.interaction.livestreaming.repository.dto.LiveStreamingMetadataResponse;
 import com.youtube.live.interaction.livestreaming.service.dto.ReactionToggleResult;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +27,14 @@ public class LiveStreamingController {
     private final LiveStreamingReactionService liveStreamingReactionService;
     private final LiveStreamingReactionQueryService liveStreamingReactionQueryService;
     private final LiveStreamingService liveStreamingService;
+    private final LiveStreamingQueryService liveStreamingQueryService;
     private static final String SESSION_USER_ID = "userId";
 
     @PostMapping("/{liveStreamingId}/likes")
     public ResponseEntity<ReactionCreateResponse> toggleLike(
-        @PathVariable final Long liveStreamingId,
-        @RequestBody final ReactionCreateRequest request,
-        final HttpSession session
+            @PathVariable final Long liveStreamingId,
+            @RequestBody final ReactionCreateRequest request,
+            final HttpSession session
     ) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
         if (userId == null) {
@@ -39,17 +42,17 @@ public class LiveStreamingController {
         }
 
         final ReactionToggleResult toggleResult = liveStreamingReactionService.toggleReaction(
-            liveStreamingId,
-            userId,
-            request.getReactionType()
+                liveStreamingId,
+                userId,
+                request.getReactionType()
         );
 
         final int likeCount = liveStreamingReactionQueryService.getLikeCount(liveStreamingId);
 
         final ReactionCreateResponse response = new ReactionCreateResponse(
-            likeCount,
-            toggleResult.isLiked(),
-            toggleResult.isDisliked()
+                likeCount,
+                toggleResult.isLiked(),
+                toggleResult.isDisliked()
         );
 
         return ResponseEntity.ok(response);
@@ -77,5 +80,13 @@ public class LiveStreamingController {
 
         final LiveStreamingCreateResponse response = liveStreamingService.startLiveStreaming(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{liveStreamingId}/metadata")
+    public ResponseEntity<LiveStreamingMetadataResponse> getMetadata(
+            @PathVariable final Long liveStreamingId
+    ) {
+        final LiveStreamingMetadataResponse response = liveStreamingQueryService.getMetadata(liveStreamingId);
+        return ResponseEntity.ok(response);
     }
 }

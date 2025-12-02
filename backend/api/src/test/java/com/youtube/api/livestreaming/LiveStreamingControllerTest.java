@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 import static com.youtube.core.testfixtures.builder.ChannelBuilder.Channel;
+import static com.youtube.core.testfixtures.builder.SubscriptionBuilder.Subscription;
 import static com.youtube.live.interaction.builder.LiveStreamingBuilder.LiveStreaming;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -246,5 +247,68 @@ class LiveStreamingControllerTest extends RestAssuredTest {
                 .post("/api/v1/livestreams")
                 .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @Test
+    @DisplayName("라이브 스트리밍 메타데이터를 조회하면 채널 정보와 라이브 정보 및 구독자 수를 받는다")
+    void getMetadata_ReturnsLiveStreamingMetadata() {
+        // given
+        final Long streamerId = TestAuthSupport.signUp(
+                "streamer@example.com",
+                "스트리머",
+                "password123!"
+        ).as(Long.class);
+
+        final Long subscriber1Id = TestAuthSupport.signUp(
+                "subscriber1@example.com",
+                "구독자1",
+                "password123!"
+        ).as(Long.class);
+
+        final Long subscriber2Id = TestAuthSupport.signUp(
+                "subscriber2@example.com",
+                "구독자2",
+                "password123!"
+        ).as(Long.class);
+
+        final User streamer = UserBuilder.User().withId(streamerId).build();
+        final User subscriber1 = UserBuilder.User().withId(subscriber1Id).build();
+        final User subscriber2 = UserBuilder.User().withId(subscriber2Id).build();
+
+        final Channel channel = testSupport.save(
+                Channel()
+                        .withUser(streamer)
+                        .withChannelName("테스트 채널")
+                        .withProfileImageUrl("https://example.com/profile.jpg")
+                        .build()
+        );
+
+        final LiveStreaming liveStreaming = testSupport.save(
+                LiveStreaming()
+                        .withChannel(channel)
+                        .withTitle("테스트 라이브")
+                        .withDescription("테스트 라이브 설명입니다")
+                        .build()
+        );
+
+        testSupport.save(Subscription().withSubscriber(subscriber1).withChannel(channel).build());
+        testSupport.save(Subscription().withSubscriber(subscriber2).withChannel(channel).build());
+
+        // when
+        final ExtractableResponse<Response> response = given()
+                .when()
+                .get("/api/v1/livestreams/{liveStreamingId}/metadata", liveStreaming.getId())
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract();
+
+        // then
+        assertThat(response.jsonPath().getLong("channelId")).isEqualTo(channel.getId());
+        assertThat(response.jsonPath().getString("channelName")).isEqualTo("테스트 채널");
+        assertThat(response.jsonPath().getString("channelProfileImageUrl")).isEqualTo("https://example.com/profile.jpg");
+        assertThat(response.jsonPath().getString("liveStreamingTitle")).isEqualTo("테스트 라이브");
+        assertThat(response.jsonPath().getString("liveStreamingDescription")).isEqualTo("테스트 라이브 설명입니다");
+        assertThat(response.jsonPath().getString("liveStreamingStartedAt")).isNotNull();
+        assertThat(response.jsonPath().getLong("subscriberCount")).isEqualTo(2);
     }
 }
