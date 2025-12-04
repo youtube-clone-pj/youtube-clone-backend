@@ -1,4 +1,4 @@
-package com.youtube.live.interaction.livestreaming.controller.dto;
+package com.youtube.live.interaction.livestreaming.repository.dto;
 
 import com.youtube.live.interaction.livestreaming.domain.ChatMessageType;
 import lombok.AllArgsConstructor;
@@ -12,6 +12,7 @@ import java.time.Instant;
 @AllArgsConstructor
 public class ChatMessageResponse {
 
+    private Long chatId;
     private String username;
     private String message;
     private ChatMessageType chatMessageType;

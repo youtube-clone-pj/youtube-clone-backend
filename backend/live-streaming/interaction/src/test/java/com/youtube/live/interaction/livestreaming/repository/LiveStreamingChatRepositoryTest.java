@@ -3,7 +3,7 @@ package com.youtube.live.interaction.livestreaming.repository;
 import com.youtube.core.channel.domain.Channel;
 import com.youtube.core.user.domain.User;
 import com.youtube.live.interaction.config.IntegrationTest;
-import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageResponse;
+import com.youtube.live.interaction.livestreaming.repository.dto.ChatMessageResponse;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreaming;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,5 +79,32 @@ class LiveStreamingChatRepositoryTest extends IntegrationTest {
 
         // then
         assertThat(result).hasSize(10);
+    }
+
+    @Test
+    @DisplayName("lastChatId 이후의 새로운 채팅 메시지만 ID 오름차순으로 조회한다")
+    void findNewChatsAfter_ReturnsOnlyNewChatsOrderedById() {
+        // given
+        final User user = testSupport.save(User().build());
+        final Channel channel = testSupport.save(Channel().withUser(user).build());
+        final LiveStreaming liveStreaming = testSupport.save(LiveStreaming().withChannel(channel).build());
+
+        final var chats = testSupport.saveAll(
+                LiveStreamingChat().withLiveStreaming(liveStreaming).withUser(user).withMessage("메시지 1").build(),
+                LiveStreamingChat().withLiveStreaming(liveStreaming).withUser(user).withMessage("메시지 2").build(),
+                LiveStreamingChat().withLiveStreaming(liveStreaming).withUser(user).withMessage("메시지 3").build(),
+                LiveStreamingChat().withLiveStreaming(liveStreaming).withUser(user).withMessage("메시지 4").build()
+        );
+
+        // when
+        final List<ChatMessageResponse> result = sut.findNewChatsAfter(
+                liveStreaming.getId(),
+                chats.get(1).getId()
+        );
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getMessage()).isEqualTo("메시지 3");
+        assertThat(result.get(1).getMessage()).isEqualTo("메시지 4");
     }
 }

@@ -1,6 +1,7 @@
 package com.youtube.live.interaction.livestreaming.service;
 
-import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageResponse;
+import com.youtube.live.interaction.livestreaming.repository.dto.ChatMessageResponse;
+import com.youtube.live.interaction.livestreaming.service.dto.ChatsResponse;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreamingChatReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,5 +21,20 @@ public class LiveStreamingChatQueryService {
         final List<ChatMessageResponse> recentChats = liveStreamingChatReader.readRecentChats(liveStreamingId, 30);
         Collections.reverse(recentChats);
         return recentChats;
+    }
+
+    public ChatsResponse getInitialChats(final Long liveStreamingId) {
+        final List<ChatMessageResponse> recentChats = getInitialMessages(liveStreamingId);
+        return new ChatsResponse(recentChats, extractLastChatId(recentChats));
+    }
+
+    public ChatsResponse getNewChats(final Long liveStreamingId, final Long lastChatId) {
+        final List<ChatMessageResponse> newChats = liveStreamingChatReader.readNewChatsAfter(liveStreamingId, lastChatId);
+        final Long latestChatId = newChats.isEmpty() ? lastChatId : extractLastChatId(newChats);
+        return new ChatsResponse(newChats, latestChatId);
+    }
+
+    private Long extractLastChatId(final List<ChatMessageResponse> chats) {
+        return chats.isEmpty() ? null : chats.get(chats.size() - 1).getChatId();
     }
 }

@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/livestreams")
-public class LiveStreamingController {
+public class LiveStreamingV1Controller {
 
     private final LiveStreamingReactionService liveStreamingReactionService;
     private final LiveStreamingReactionQueryService liveStreamingReactionQueryService;
