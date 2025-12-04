@@ -3,7 +3,7 @@ package com.youtube.live.interaction.livestreaming.controller;
 import com.youtube.live.interaction.websocket.auth.AuthUser;
 import com.youtube.live.interaction.websocket.auth.LoginUser;
 import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageRequest;
-import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageResponse;
+import com.youtube.live.interaction.livestreaming.repository.dto.ChatMessageResponse;
 import com.youtube.live.interaction.livestreaming.controller.dto.ErrorResponse;
 import com.youtube.live.interaction.livestreaming.controller.dto.InitialChatMessagesResponse;
 import com.youtube.live.interaction.livestreaming.service.LiveStreamingChatQueryService;
@@ -64,6 +64,7 @@ public class WebSocketChatController {
         );
 
         return new ChatMessageResponse(
+                null,
                 username,
                 chatMessageRequest.getMessage(),
                 chatMessageRequest.getChatMessageType(),

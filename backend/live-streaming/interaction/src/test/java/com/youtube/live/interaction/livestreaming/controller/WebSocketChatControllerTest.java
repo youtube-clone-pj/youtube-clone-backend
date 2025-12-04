@@ -7,7 +7,7 @@ import com.youtube.core.user.domain.User;
 import com.youtube.live.interaction.config.WebSocketConfig;
 import com.youtube.live.interaction.config.WebSocketStompTest;
 import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageRequest;
-import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageResponse;
+import com.youtube.live.interaction.livestreaming.repository.dto.ChatMessageResponse;
 import com.youtube.live.interaction.livestreaming.controller.dto.ErrorResponse;
 import com.youtube.live.interaction.livestreaming.controller.dto.InitialChatMessagesResponse;
 import com.youtube.live.interaction.livestreaming.domain.ChatMessageType;
