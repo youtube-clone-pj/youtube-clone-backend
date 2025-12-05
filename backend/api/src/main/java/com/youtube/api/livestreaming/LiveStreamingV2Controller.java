@@ -53,14 +53,8 @@ public class LiveStreamingV2Controller {
             @PathVariable final Long liveStreamingId,
             final HttpSession session
     ) {
-        // clientId를 세션에서 가져오거나 생성
         final String clientId = getOrCreateClientId(session);
-
-        // userId는 로그인한 경우에만 존재
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
-
-        log.debug("GET /live-stats - sessionId: {}, clientId: {}, userId: {}",
-                session.getId(), clientId, userId);
 
         final LiveStatsResponse response = liveStreamingQueryService.pollLiveStats(
                 liveStreamingId,
