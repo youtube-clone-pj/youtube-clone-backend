@@ -12,6 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class LiveStreamingViewerManager {
 
+    private static final String USER_PREFIX = "user:";
+    private static final String CLIENT_PREFIX = "client:";
+
     /**
      * 시청자 만료 TTL (Time To Live)
      *
@@ -33,6 +36,12 @@ public class LiveStreamingViewerManager {
     private final ConcurrentHashMap<Long, ConcurrentHashMap<String, Instant>> liveStreamViewers = new ConcurrentHashMap<>();
 
     /**
+     * 라이브 스트리밍별 스트리머 userId 저장
+     * Key: livestreamId, Value: streamerUserId
+     */
+    private final ConcurrentHashMap<Long, Long> streamerUserIds = new ConcurrentHashMap<>();
+
+    /**
      * Heartbeat 기록 (하이브리드 방식)
      *
      * @param livestreamId 라이브 스트리밍 ID
@@ -45,8 +54,8 @@ public class LiveStreamingViewerManager {
      */
     public void recordHeartbeat(final Long livestreamId, final String clientId, final Long userId) {
         final String viewerId = userId != null
-                ? "user:" + userId
-                : "client:" + clientId;
+                ? USER_PREFIX + userId
+                : CLIENT_PREFIX + clientId;
 
         liveStreamViewers.compute(livestreamId, (id, viewers) -> {
             if (viewers == null) {
@@ -59,9 +68,24 @@ public class LiveStreamingViewerManager {
         log.debug("Heartbeat 기록 - livestreamId: {}, viewerId: {}", livestreamId, viewerId);
     }
 
-    public int getViewerCount(final Long livestreamId) {
+    public void registerStreamer(final Long livestreamId, final Long streamerUserId) {
+        streamerUserIds.put(livestreamId, streamerUserId);
+    }
+
+    public int getViewerCountExcludingStreamer(final Long livestreamId) {
         cleanupExpiredViewers(livestreamId);
-        return liveStreamViewers.getOrDefault(livestreamId, new ConcurrentHashMap<>()).size();
+
+        final ConcurrentHashMap<String, Instant> viewers = liveStreamViewers.getOrDefault(livestreamId, new ConcurrentHashMap<>());
+        final Long streamerUserId = streamerUserIds.get(livestreamId);
+
+        if (streamerUserId == null) {
+            return viewers.size();
+        }
+
+        final String streamerViewerId = USER_PREFIX + streamerUserId;
+        final boolean hasStreamer = viewers.containsKey(streamerViewerId);
+
+        return hasStreamer ? Math.max(0, viewers.size() - 1) : viewers.size();
     }
 
     private void cleanupExpiredViewers(final Long livestreamId) {

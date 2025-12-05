@@ -32,7 +32,7 @@ class LiveStreamingViewerManagerTest {
         sut.recordHeartbeat(livestreamId, clientId, null);
 
         // then
-        assertThat(sut.getViewerCount(livestreamId)).isEqualTo(1);
+        assertThat(sut.getViewerCountExcludingStreamer(livestreamId)).isEqualTo(1);
     }
 
     @Test
@@ -49,7 +49,7 @@ class LiveStreamingViewerManagerTest {
         sut.recordHeartbeat(livestreamId, clientId2, userId);
 
         // then
-        assertThat(sut.getViewerCount(livestreamId)).isEqualTo(1);
+        assertThat(sut.getViewerCountExcludingStreamer(livestreamId)).isEqualTo(1);
     }
 
     @Test
@@ -62,7 +62,7 @@ class LiveStreamingViewerManagerTest {
 
         // when: 비로그인으로 시청
         sut.recordHeartbeat(livestreamId, clientId, null);
-        assertThat(sut.getViewerCount(livestreamId)).isEqualTo(1);
+        assertThat(sut.getViewerCountExcludingStreamer(livestreamId)).isEqualTo(1);
 
         // when: 로그인 후 시청
         // clientId는 세션에 유지되지만, viewerId는 "client:xxx"에서 "user:xxx"로 변경됨
@@ -70,7 +70,7 @@ class LiveStreamingViewerManagerTest {
 
         // then: 로그인 직후에는 일시적으로 2명으로 카운팅됨 (제한사항)
         // 비로그인 "client:xxx"는 30초 후 TTL로 자동 제거되어 최종적으로 1명으로 수렴
-        assertThat(sut.getViewerCount(livestreamId)).isEqualTo(2);
+        assertThat(sut.getViewerCountExcludingStreamer(livestreamId)).isEqualTo(2);
     }
 
     @Test
@@ -80,7 +80,7 @@ class LiveStreamingViewerManagerTest {
         final Long livestreamId = 1L;
 
         // when
-        final int count = sut.getViewerCount(livestreamId);
+        final int count = sut.getViewerCountExcludingStreamer(livestreamId);
 
         // then
         assertThat(count).isZero();
@@ -116,7 +116,7 @@ class LiveStreamingViewerManagerTest {
         executorService.shutdown();
 
         // then
-        assertThat(sut.getViewerCount(livestreamId)).isEqualTo(50);
+        assertThat(sut.getViewerCountExcludingStreamer(livestreamId)).isEqualTo(50);
     }
 
     @Test
@@ -154,7 +154,84 @@ class LiveStreamingViewerManagerTest {
 
         // then
         for (int livestreamId = 1; livestreamId <= livestreamCount; livestreamId++) {
-            assertThat(sut.getViewerCount((long) livestreamId)).isEqualTo(50);
+            assertThat(sut.getViewerCountExcludingStreamer((long) livestreamId)).isEqualTo(50);
         }
+    }
+
+    @Test
+    @DisplayName("스트리머가 등록되지 않은 경우 전체 시청자 수를 반환한다")
+    void getViewerCountExcludingStreamerWithNoStreamerReturnsFullCount() {
+        // given
+        final Long livestreamId = 1L;
+        final String clientId1 = "client-1";
+        final String clientId2 = "client-2";
+        final Long userId1 = 1L;
+        final Long userId2 = 2L;
+
+        // when
+        sut.recordHeartbeat(livestreamId, clientId1, userId1);
+        sut.recordHeartbeat(livestreamId, clientId2, userId2);
+
+        // then
+        assertThat(sut.getViewerCountExcludingStreamer(livestreamId)).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("스트리머가 등록되었지만 접속하지 않은 경우 전체 시청자 수를 반환한다")
+    void getViewerCountExcludingStreamerWhenStreamerNotConnectedReturnsFullCount() {
+        // given
+        final Long livestreamId = 1L;
+        final Long streamerUserId = 999L;
+        final String clientId1 = "client-1";
+        final String clientId2 = "client-2";
+        final Long userId1 = 1L;
+        final Long userId2 = 2L;
+
+        sut.registerStreamer(livestreamId, streamerUserId);
+
+        // when
+        sut.recordHeartbeat(livestreamId, clientId1, userId1);
+        sut.recordHeartbeat(livestreamId, clientId2, userId2);
+
+        // then
+        assertThat(sut.getViewerCountExcludingStreamer(livestreamId)).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("스트리머만 접속한 경우 시청자 수는 0이다")
+    void getViewerCountExcludingStreamerWhenOnlyStreamerConnectedReturnsZero() {
+        // given
+        final Long livestreamId = 1L;
+        final Long streamerUserId = 1L;
+        final String streamerClientId = "client-streamer";
+
+        sut.registerStreamer(livestreamId, streamerUserId);
+
+        // when
+        sut.recordHeartbeat(livestreamId, streamerClientId, streamerUserId);
+
+        // then
+        assertThat(sut.getViewerCountExcludingStreamer(livestreamId)).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("스트리머가 여러 탭으로 접속해도 시청자 수에서 정확히 1명만 제외된다")
+    void getViewerCountExcludingStreamerWithMultipleStreamerTabsExcludesOnlyOne() {
+        // given
+        final Long livestreamId = 1L;
+        final Long streamerUserId = 1L;
+        final String streamerClientId1 = "client-streamer-1";
+        final String streamerClientId2 = "client-streamer-2";
+        final String clientId1 = "client-1";
+        final Long userId1 = 2L;
+
+        sut.registerStreamer(livestreamId, streamerUserId);
+
+        // when
+        sut.recordHeartbeat(livestreamId, streamerClientId1, streamerUserId);
+        sut.recordHeartbeat(livestreamId, streamerClientId2, streamerUserId);
+        sut.recordHeartbeat(livestreamId, clientId1, userId1);
+
+        assertThat(sut.getViewerCountExcludingStreamer(livestreamId)).isEqualTo(1);
     }
 }
