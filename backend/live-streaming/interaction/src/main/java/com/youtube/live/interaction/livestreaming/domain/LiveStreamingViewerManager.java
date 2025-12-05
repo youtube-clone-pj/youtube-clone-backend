@@ -29,22 +29,22 @@ public class LiveStreamingViewerManager {
 
     /**
      * 라이브 스트리밍별 시청자 목록
-     * Key: livestreamId, Value: (viewerId -> lastSeen timestamp)
+     * Key: liveStreamingId, Value: (viewerId -> lastSeen timestamp)
      *
      * 폴링 방식(V2)에서 시청자 수를 관리하기 위한 Heartbeat 기반 TTL 시스템
      */
-    private final ConcurrentHashMap<Long, ConcurrentHashMap<String, Instant>> liveStreamViewers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, ConcurrentHashMap<String, Instant>> liveStreamingToViewers = new ConcurrentHashMap<>();
 
     /**
      * 라이브 스트리밍별 스트리머 userId 저장
-     * Key: livestreamId, Value: streamerUserId
+     * Key: liveStreamingId, Value: streamerUserId
      */
-    private final ConcurrentHashMap<Long, Long> streamerUserIds = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Long> liveStreamingToStreamer = new ConcurrentHashMap<>();
 
     /**
      * Heartbeat 기록 (하이브리드 방식)
      *
-     * @param livestreamId 라이브 스트리밍 ID
+     * @param liveStreamingId 라이브 스트리밍 ID
      * @param clientId 클라이언트 고유 ID (서버 세션 기반)
      * @param userId 로그인한 사용자 ID (Optional)
      *
@@ -52,12 +52,12 @@ public class LiveStreamingViewerManager {
      * - 로그인 유저: "user:{userId}" 형식으로 저장 (여러 탭 = 1명)
      * - 비로그인 유저: "client:{clientId}" 형식으로 저장 (여러 탭 = 1명)
      */
-    public void recordHeartbeat(final Long livestreamId, final String clientId, final Long userId) {
+    public void recordHeartbeat(final Long liveStreamingId, final String clientId, final Long userId) {
         final String viewerId = userId != null
                 ? USER_PREFIX + userId
                 : CLIENT_PREFIX + clientId;
 
-        liveStreamViewers.compute(livestreamId, (id, viewers) -> {
+        liveStreamingToViewers.compute(liveStreamingId, (id, viewers) -> {
             if (viewers == null) {
                 viewers = new ConcurrentHashMap<>();
             }
@@ -65,18 +65,18 @@ public class LiveStreamingViewerManager {
             return viewers;
         });
 
-        log.debug("Heartbeat 기록 - livestreamId: {}, viewerId: {}", livestreamId, viewerId);
+        log.debug("Heartbeat 기록 - liveStreamingId: {}, viewerId: {}", liveStreamingId, viewerId);
     }
 
-    public void registerStreamer(final Long livestreamId, final Long streamerUserId) {
-        streamerUserIds.put(livestreamId, streamerUserId);
+    public void registerStreamer(final Long liveStreamingId, final Long streamerUserId) {
+        liveStreamingToStreamer.put(liveStreamingId, streamerUserId);
     }
 
-    public int getViewerCountExcludingStreamer(final Long livestreamId) {
-        cleanupExpiredViewers(livestreamId);
+    public int getViewerCountExcludingStreamer(final Long liveStreamingId) {
+        cleanupExpiredViewers(liveStreamingId);
 
-        final ConcurrentHashMap<String, Instant> viewers = liveStreamViewers.getOrDefault(livestreamId, new ConcurrentHashMap<>());
-        final Long streamerUserId = streamerUserIds.get(livestreamId);
+        final ConcurrentHashMap<String, Instant> viewers = liveStreamingToViewers.getOrDefault(liveStreamingId, new ConcurrentHashMap<>());
+        final Long streamerUserId = liveStreamingToStreamer.get(liveStreamingId);
 
         if (streamerUserId == null) {
             return viewers.size();
@@ -88,10 +88,10 @@ public class LiveStreamingViewerManager {
         return hasStreamer ? Math.max(0, viewers.size() - 1) : viewers.size();
     }
 
-    private void cleanupExpiredViewers(final Long livestreamId) {
+    private void cleanupExpiredViewers(final Long liveStreamingId) {
         final Instant cutoffTime = Instant.now().minus(Duration.ofSeconds(VIEWER_TTL_SECONDS));
 
-        liveStreamViewers.computeIfPresent(livestreamId, (id, viewers) -> {
+        liveStreamingToViewers.computeIfPresent(liveStreamingId, (id, viewers) -> {
             viewers.entrySet().removeIf(entry -> entry.getValue().isBefore(cutoffTime));
             return viewers.isEmpty() ? null : viewers;
         });
@@ -103,6 +103,6 @@ public class LiveStreamingViewerManager {
      */
     @Scheduled(fixedRate = 1800000) // 30분마다
     public void cleanupAllExpiredViewers() {
-        liveStreamViewers.keySet().forEach(this::cleanupExpiredViewers);
+        liveStreamingToViewers.keySet().forEach(this::cleanupExpiredViewers);
     }
 }
