@@ -6,6 +6,7 @@ import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreat
 import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreateResponse;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreaming;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreamingStatus;
+import com.youtube.live.interaction.livestreaming.domain.LiveStreamingViewerManager;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreamingWriter;
 import com.youtube.live.interaction.livestreaming.event.LiveStreamingStartedEvent;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class LiveStreamingService {
 
     private final LiveStreamingWriter liveStreamingWriter;
     private final ChannelReader channelReader;
+    private final LiveStreamingViewerManager liveStreamingViewerManager;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -37,6 +39,8 @@ public class LiveStreamingService {
                 request.thumbnailUrl(),
                 LiveStreamingStatus.LIVE
         );
+
+        liveStreamingViewerManager.registerStreamer(savedLiveStreaming.getId(), userId);
 
         eventPublisher.publishEvent(new LiveStreamingStartedEvent(
                 savedLiveStreaming.getId(),

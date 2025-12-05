@@ -28,7 +28,7 @@ public class LiveStreamingQueryService {
     ) {
         liveStreamingViewerManager.recordHeartbeat(liveStreamingId, clientId, userId);
 
-        final int viewerCount = liveStreamingViewerManager.getViewerCount(liveStreamingId);
+        final int viewerCount = liveStreamingViewerManager.getViewerCountExcludingStreamer(liveStreamingId);
         final int likeCount = reactionReader.countBy(liveStreamingId, ReactionType.LIKE);
         return new LiveStatsResponse(viewerCount, likeCount);
     }
