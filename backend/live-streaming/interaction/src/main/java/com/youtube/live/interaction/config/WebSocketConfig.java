@@ -1,6 +1,7 @@
 package com.youtube.live.interaction.config;
 
 import com.youtube.live.interaction.websocket.auth.AuthUserArgumentResolver;
+import com.youtube.live.interaction.websocket.auth.CustomHandshakeInterceptor;
 import com.youtube.live.interaction.websocket.auth.WebSocketAuthInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +13,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 import java.util.List;
 
@@ -85,8 +85,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      * - 실패 시 HTTP 스트리밍/폴링으로 자동 fallback (프록시, 방화벽 등의 제약 우회)
      * - 클라이언트는 SockJS 프로토콜을 지원하는 클라이언트(SockJsClient, sockjs-client)를 사용해야 합니다
      *
-     * HttpSessionHandshakeInterceptor: WebSocket 연결이 시작될 때 기존 HTTP 세션의 속성들을
-     * WebSocket 세션으로 복사합니다.
+     * CustomHandshakeInterceptor: WebSocket 연결이 시작될 때 기존 HTTP 세션의 속성들을
+     * WebSocket 세션으로 복사하고, clientId를 WebSocket 세션 속성으로 전달합니다.
      *
      * @see <a href="https://docs.spring.io/spring-framework/reference/web/websocket/fallback.html">Spring Framework - SockJS Fallback</a>
      */
@@ -94,7 +94,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint(Destinations.WS_ENDPOINT)
                 .setAllowedOriginPatterns("*") //TODO Same Origin에서만 가능하도록 수정할 것
-                .addInterceptors(new HttpSessionHandshakeInterceptor())
+                .addInterceptors(new CustomHandshakeInterceptor())
                 .withSockJS();
 
         // 클라이언트에서 서버로 수신된 메시지를 순서대로 처리
