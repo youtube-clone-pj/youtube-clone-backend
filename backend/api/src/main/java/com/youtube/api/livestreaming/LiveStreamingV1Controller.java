@@ -78,7 +78,7 @@ public class LiveStreamingV1Controller {
             throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
-        final LiveStreamingCreateResponse response = liveStreamingService.startLiveStreaming(userId, request);
+        final LiveStreamingCreateResponse response = liveStreamingService.startLiveStreamingV1(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

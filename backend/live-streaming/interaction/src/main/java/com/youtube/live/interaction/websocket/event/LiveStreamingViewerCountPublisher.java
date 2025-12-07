@@ -68,8 +68,7 @@ public class LiveStreamingViewerCountPublisher {
     @Scheduled(fixedRate = 20000)
     public void publishViewerCounts() {
         liveStreamingSubscriberManager.getActiveLivestreamIds().forEach(livestreamId -> {
-            final int totalSubscribers = liveStreamingSubscriberManager.getSubscriberCount(livestreamId);
-            final int viewerCount = Math.max(0, totalSubscribers - 1);
+            final int viewerCount = liveStreamingSubscriberManager.getSubscriberCount(livestreamId);
 
             messagingTemplate.convertAndSend(
                     "/topic/livestreams/" + livestreamId + "/viewer-count",

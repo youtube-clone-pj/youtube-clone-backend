@@ -54,6 +54,12 @@ public class LiveStreamingSubscriberManager {
      */
     private final ConcurrentHashMap<Long, ConcurrentHashMap<String, Set<String>>> liveStreamingToViewers = new ConcurrentHashMap<>();
 
+    /**
+     * 라이브 스트리밍별 스트리머 userId 저장
+     * Key: liveStreamingId, Value: streamerUserId
+     */
+    private final ConcurrentHashMap<Long, Long> liveStreamingToStreamer = new ConcurrentHashMap<>();
+
 
     private record ViewerSession(Long liveStreamingId, String viewerId) {
         public boolean isDifferentLiveStreaming(final Long otherLiveStreamingId) {
@@ -142,11 +148,28 @@ public class LiveStreamingSubscriberManager {
         });
     }
 
+    public void registerStreamer(final Long liveStreamingId, final Long streamerUserId) {
+        liveStreamingToStreamer.put(liveStreamingId, streamerUserId);
+    }
+
+    //TODO 라이브 스트리밍 종료 API 구현 시 호출 필요 (메모리 누수 방지)
+    public void unregisterStreamer(final Long liveStreamingId) {
+        liveStreamingToStreamer.remove(liveStreamingId);
+    }
+
     public int getSubscriberCount(final Long liveStreamingId) {
         final ConcurrentHashMap<String, Set<String>> viewers =
-                liveStreamingToViewers.get(liveStreamingId);
+                liveStreamingToViewers.getOrDefault(liveStreamingId, new ConcurrentHashMap<>());
+        final Long streamerUserId = liveStreamingToStreamer.get(liveStreamingId);
 
-        return viewers == null ? 0 : viewers.size();
+        if (streamerUserId == null) {
+            return viewers.size();
+        }
+
+        final String streamerViewerId = USER_PREFIX + streamerUserId;
+        final boolean hasStreamer = viewers.containsKey(streamerViewerId);
+
+        return hasStreamer ? Math.max(0, viewers.size() - 1) : viewers.size();
     }
 
     public Set<Long> getActiveLivestreamIds() {

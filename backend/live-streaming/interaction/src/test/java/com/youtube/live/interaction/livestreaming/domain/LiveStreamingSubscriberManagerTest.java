@@ -241,4 +241,75 @@ class LiveStreamingSubscriberManagerTest {
         }
         assertThat(sut.getActiveLivestreamIds()).hasSize(livestreamCount);
     }
+
+    @Test
+    @DisplayName("스트리머가 등록되지 않은 경우 전체 시청자 수를 반환한다")
+    void getSubscriberCountWithNoStreamerReturnsFullCount() {
+        // given
+        final Long livestreamId = 1L;
+        final Long userId1 = 1L;
+        final Long userId2 = 2L;
+
+        // when
+        sut.addSubscriber(livestreamId, "session-1", userId1, "client-1");
+        sut.addSubscriber(livestreamId, "session-2", userId2, "client-2");
+
+        // then
+        assertThat(sut.getSubscriberCount(livestreamId)).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("스트리머가 등록되었지만 구독하지 않은 경우 전체 시청자 수를 반환한다")
+    void getSubscriberCountWhenStreamerNotSubscribedReturnsFullCount() {
+        // given
+        final Long livestreamId = 1L;
+        final Long streamerUserId = 999L;
+        final Long userId1 = 1L;
+        final Long userId2 = 2L;
+
+        sut.registerStreamer(livestreamId, streamerUserId);
+
+        // when
+        sut.addSubscriber(livestreamId, "session-1", userId1, "client-1");
+        sut.addSubscriber(livestreamId, "session-2", userId2, "client-2");
+
+        // then
+        assertThat(sut.getSubscriberCount(livestreamId)).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("스트리머만 구독한 경우 시청자 수는 0이다")
+    void getSubscriberCountWhenOnlyStreamerSubscribedReturnsZero() {
+        // given
+        final Long livestreamId = 1L;
+        final Long streamerUserId = 1L;
+
+        sut.registerStreamer(livestreamId, streamerUserId);
+
+        // when
+        sut.addSubscriber(livestreamId, "session-streamer", streamerUserId, "client-streamer");
+
+        // then
+        assertThat(sut.getSubscriberCount(livestreamId)).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("스트리머와 시청자가 함께 구독한 경우 스트리머를 제외하고 카운트된다")
+    void getSubscriberCountWithStreamerAndViewersExcludesStreamer() {
+        // given
+        final Long livestreamId = 1L;
+        final Long streamerUserId = 1L;
+        final Long userId1 = 2L;
+        final Long userId2 = 3L;
+
+        sut.registerStreamer(livestreamId, streamerUserId);
+
+        // when
+        sut.addSubscriber(livestreamId, "session-streamer", streamerUserId, "client-streamer");
+        sut.addSubscriber(livestreamId, "session-1", userId1, "client-1");
+        sut.addSubscriber(livestreamId, "session-2", userId2, "client-2");
+
+        // then
+        assertThat(sut.getSubscriberCount(livestreamId)).isEqualTo(2);
+    }
 }
