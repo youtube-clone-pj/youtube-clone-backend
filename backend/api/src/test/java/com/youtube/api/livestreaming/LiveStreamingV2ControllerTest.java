@@ -7,6 +7,8 @@ import com.youtube.core.testfixtures.builder.UserBuilder;
 import com.youtube.core.user.domain.User;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreaming;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreamingChat;
+import com.youtube.live.interaction.livestreaming.domain.LiveStreamingStatus;
+import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreateRequest;
 import io.restassured.http.ContentType;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
@@ -25,6 +27,63 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LiveStreamingV2ControllerTest extends RestAssuredTest {
+
+    @Test
+    @DisplayName("로그인한 사용자가 라이브 스트리밍을 시작한다")
+    void startLiveStreaming_Authenticated_ReturnsCreatedLiveStreaming() {
+        // given
+        TestAuthSupport.signUp(
+                "streamer@example.com",
+                "스트리머",
+                "password123!"
+        );
+
+        final String jsessionId = TestAuthSupport.login("streamer@example.com", "password123!");
+        final LiveStreamingCreateRequest request = new LiveStreamingCreateRequest(
+                "테스트 라이브",
+                "테스트 라이브 설명입니다",
+                "https://example.com/thumbnail.jpg"
+        );
+
+        // when
+        final ExtractableResponse<Response> response = given()
+                .cookie("JSESSIONID", jsessionId)
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/api/v2/livestreams")
+                .then()
+                .statusCode(HttpStatus.CREATED.value())
+                .extract();
+
+        // then
+        assertThat(response.jsonPath().getLong("liveStreamingId")).isNotNull();
+        assertThat(response.jsonPath().getString("title")).isEqualTo("테스트 라이브");
+        assertThat(response.jsonPath().getString("description")).isEqualTo("테스트 라이브 설명입니다");
+        assertThat(response.jsonPath().getString("thumbnailUrl")).isEqualTo("https://example.com/thumbnail.jpg");
+        assertThat(response.jsonPath().getString("status")).isEqualTo(LiveStreamingStatus.LIVE.name());
+        assertThat(response.jsonPath().getLong("channelId")).isNotNull();
+    }
+
+    @Test
+    @DisplayName("로그인하지 않은 사용자는 라이브 스트리밍을 시작할 수 없다")
+    void startLiveStreaming_Unauthenticated_ReturnsError() {
+        // given
+        final LiveStreamingCreateRequest request = new LiveStreamingCreateRequest(
+                "테스트 라이브",
+                "테스트 라이브 설명입니다",
+                "https://example.com/thumbnail.jpg"
+        );
+
+        // when & then
+        given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/api/v2/livestreams")
+                .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+    }
 
     @Test
     @DisplayName("라이브 스트리밍 메타데이터를 조회하면 채널 정보와 라이브 정보 및 구독자 수를 받는다")
