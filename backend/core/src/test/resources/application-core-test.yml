@@ -1,0 +1,9 @@
+# 테스트 코드 설정은 모듈별로 분리하지 않는다.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+#    properties:
+#      hibernate:
+#        format_sql: true
+#        use_sql_comments: true

@@ -1,0 +1,21 @@
+# 테스트 코드 설정은 모듈별로 분리하지 않는다.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+#    properties:
+#      hibernate:
+#        format_sql: true
+#        use_sql_comments: true
+
+webpush:
+  vapid:
+    public-key: BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM=
+    private-key: ANlfcHHJZd3em_olBmVefmGAkRH3jL93grzJW7C7KX0
+    subject: mailto:test@example.com
+
+#logging:
+#  level:
+#    root: info
+#    com.youtube: debug
+#    org.hibernate.SQL: debug
