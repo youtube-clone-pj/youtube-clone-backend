@@ -1,15 +1,18 @@
 package com.youtube.live.interaction.config;
 
 import com.youtube.live.interaction.websocket.auth.AuthUserArgumentResolver;
+import com.youtube.live.interaction.websocket.auth.CustomHandshakeInterceptor;
 import com.youtube.live.interaction.websocket.auth.WebSocketAuthInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 import java.util.List;
 
@@ -22,6 +25,21 @@ import java.util.List;
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    private TaskScheduler messageBrokerTaskScheduler;
+
+    /**
+     * STOMP heartbeat를 위한 TaskScheduler를 주입받습니다.
+     *
+     * @Lazy 어노테이션을 사용하여 순환 참조 문제를 방지합니다.
+     * Spring이 제공하는 기본 TaskScheduler를 사용하며, 필요할 때까지 초기화를 지연시킵니다.
+     *
+     * @see <a href="https://docs.spring.io/spring-framework/reference/web/websocket/stomp/handle-simple-broker.html">Spring Framework - Simple Broker</a>
+     */
+    @Autowired
+    public void setMessageBrokerTaskScheduler(@Lazy final TaskScheduler taskScheduler) {
+        this.messageBrokerTaskScheduler = taskScheduler;
+    }
 
     /**
      * 메시지 브로커를 설정합니다.
@@ -36,10 +54,23 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      *
      * setPreservePublishOrder(true): 서버에서 클라이언트로 메시지를 발행할 때 순서를 보장합니다.
      * 같은 세션의 아웃바운드 메시지가 순서대로 전송됩니다.
+     *
+     * STOMP heartbeat 설정:
+     * - setTaskScheduler: TaskScheduler를 설정하여 heartbeat 기능을 활성화합니다.
+     * - setHeartbeatValue: heartbeat 간격을 설정합니다 (밀리초 단위).
+     *   [서버→클라이언트 간격, 클라이언트→서버 간격]
+     *   - 서버→클라이언트: 10초 (10000ms) - 서버가 클라이언트로 주기적으로 heartbeat를 전송
+     *   - 클라이언트→서버: 10초 (10000ms) - 클라이언트로부터 heartbeat를 기대하는 간격
+     *   Heartbeat는 연결 활성 상태를 확인하기 위해 전송되며, 클라이언트가 설정된 간격 내에
+     *   heartbeat를 보내지 않으면 서버는 해당 연결을 비정상으로 간주하고 종료합니다.
+     *
+     * @see <a href="https://docs.spring.io/spring-framework/reference/web/websocket/stomp/handle-simple-broker.html">Spring Framework - Simple Broker Heartbeat</a>
      */
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker(Destinations.TOPIC_PREFIX, Destinations.QUEUE_PREFIX);
+        config.enableSimpleBroker(Destinations.TOPIC_PREFIX, Destinations.QUEUE_PREFIX)
+                .setTaskScheduler(this.messageBrokerTaskScheduler)
+                .setHeartbeatValue(new long[]{10000, 10000}); // [서버→클라이언트, 클라이언트→서버] 간격 (ms)
         config.setApplicationDestinationPrefixes(Destinations.APP_PREFIX);
         config.setPreservePublishOrder(true);
     }
@@ -54,8 +85,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      * - 실패 시 HTTP 스트리밍/폴링으로 자동 fallback (프록시, 방화벽 등의 제약 우회)
      * - 클라이언트는 SockJS 프로토콜을 지원하는 클라이언트(SockJsClient, sockjs-client)를 사용해야 합니다
      *
-     * HttpSessionHandshakeInterceptor: WebSocket 연결이 시작될 때 기존 HTTP 세션의 속성들을
-     * WebSocket 세션으로 복사합니다.
+     * CustomHandshakeInterceptor: WebSocket 연결이 시작될 때 기존 HTTP 세션의 속성들을
+     * WebSocket 세션으로 복사하고, clientId를 WebSocket 세션 속성으로 전달합니다.
      *
      * @see <a href="https://docs.spring.io/spring-framework/reference/web/websocket/fallback.html">Spring Framework - SockJS Fallback</a>
      */
@@ -63,7 +94,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint(Destinations.WS_ENDPOINT)
                 .setAllowedOriginPatterns("*") //TODO Same Origin에서만 가능하도록 수정할 것
-                .addInterceptors(new HttpSessionHandshakeInterceptor())
+                .addInterceptors(new CustomHandshakeInterceptor())
                 .withSockJS();
 
         // 클라이언트에서 서버로 수신된 메시지를 순서대로 처리

@@ -27,6 +27,7 @@ public class LiveStreamingViewerCountPublisher {
     /**
      * 클라이언트가 특정 토픽을 구독할 때 호출
      */
+    //TODO 비동기 처리? 왜냐하면 liveStreamingSubscriberManager 로직 때문에? 여기 아니면 LiveStreamingSubscriberManager.addSubscriber가 비동기?
     @EventListener
     public void handleSubscribe(final SessionSubscribeEvent event) {
         final StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -34,7 +35,23 @@ public class LiveStreamingViewerCountPublisher {
         final String simpSessionId = accessor.getSessionId();
 
         if (destination != null && destination.matches("/topic/livestreams/\\d+/chat/messages")) {
-            liveStreamingSubscriberManager.addSubscriber(extractLivestreamId(destination), simpSessionId);
+            final Long livestreamId = extractLivestreamId(destination);
+
+            final Long userId = (Long) accessor.getSessionAttributes().get("userId");
+            final String clientId = (String) accessor.getSessionAttributes().get("clientId");
+
+            if (clientId == null) {
+                log.error("LiveStreaming 시청자 카운팅 실패 - clientId 누락, simpSessionId: {}, destination: {}",
+                        simpSessionId, destination);
+                return;
+            }
+
+            liveStreamingSubscriberManager.addSubscriber(
+                    livestreamId,
+                    simpSessionId,
+                    userId,
+                    clientId
+            );
         }
     }
 
@@ -48,12 +65,10 @@ public class LiveStreamingViewerCountPublisher {
         liveStreamingSubscriberManager.removeSubscriber(event.getSessionId());
     }
 
-    //TODO TaskScheduler로 수정이 필요한 지 확인할 것
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 20000)
     public void publishViewerCounts() {
         liveStreamingSubscriberManager.getActiveLivestreamIds().forEach(livestreamId -> {
-            final int totalSubscribers = liveStreamingSubscriberManager.getSubscriberCount(livestreamId);
-            final int viewerCount = Math.max(0, totalSubscribers - 1);
+            final int viewerCount = liveStreamingSubscriberManager.getSubscriberCount(livestreamId);
 
             messagingTemplate.convertAndSend(
                     "/topic/livestreams/" + livestreamId + "/viewer-count",

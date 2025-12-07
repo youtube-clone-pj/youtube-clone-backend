@@ -20,8 +20,8 @@ class LiveStreamingServiceTest extends IntegrationTest {
     private LiveStreamingService sut;
 
     @Test
-    @DisplayName("라이브 스트리밍을 시작한다")
-    void startLiveStreaming_Success() {
+    @DisplayName("라이브 스트리밍을 시작한다 (V1)")
+    void startLiveStreamingV1_Success() {
         // given
         final User user = testSupport.save(User().build());
         final Channel channel = testSupport.save(Channel().withUser(user).build());
@@ -33,7 +33,30 @@ class LiveStreamingServiceTest extends IntegrationTest {
         );
 
         // when
-        final LiveStreamingCreateResponse response = sut.startLiveStreaming(
+        final LiveStreamingCreateResponse response = sut.startLiveStreamingV1(
+                user.getId(),
+                request
+        );
+
+        // then
+        assertThat(response.status()).isEqualTo(LiveStreamingStatus.LIVE);
+    }
+
+    @Test
+    @DisplayName("라이브 스트리밍을 시작한다 (V2)")
+    void startLiveStreamingV2_Success() {
+        // given
+        final User user = testSupport.save(User().build());
+        final Channel channel = testSupport.save(Channel().withUser(user).build());
+
+        final LiveStreamingCreateRequest request = new LiveStreamingCreateRequest(
+                "테스트 라이브 제목",
+                "테스트 라이브 설명",
+                "https://example.com/thumbnail.jpg"
+        );
+
+        // when
+        final LiveStreamingCreateResponse response = sut.startLiveStreamingV2(
                 user.getId(),
                 request
         );

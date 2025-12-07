@@ -5,8 +5,11 @@ import com.youtube.common.exception.BaseException;
 import com.youtube.live.interaction.exception.LiveStreamingErrorCode;
 import com.youtube.live.interaction.livestreaming.controller.dto.ChatMessageRequest;
 import com.youtube.live.interaction.livestreaming.service.LiveStreamingChatService;
+import com.youtube.live.interaction.livestreaming.service.LiveStreamingService;
 import com.youtube.live.interaction.livestreaming.service.dto.ChatsResponse;
 import com.youtube.live.interaction.livestreaming.service.dto.LiveStatsResponse;
+import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreateRequest;
+import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreateResponse;
 import com.youtube.live.interaction.livestreaming.repository.dto.LiveStreamingMetadataResponse;
 import com.youtube.live.interaction.livestreaming.service.LiveStreamingChatQueryService;
 import com.youtube.live.interaction.livestreaming.service.LiveStreamingQueryService;
@@ -27,11 +30,26 @@ import java.util.UUID;
 @RequestMapping("/api/v2/livestreams")
 public class LiveStreamingV2Controller {
 
+    private final LiveStreamingService liveStreamingService;
     private final LiveStreamingQueryService liveStreamingQueryService;
     private final LiveStreamingChatQueryService liveStreamingChatQueryService;
     private final LiveStreamingChatService liveStreamingChatService;
     private static final String SESSION_USER_ID = "userId";
     private static final String SESSION_CLIENT_ID = "clientId";
+
+    @PostMapping
+    public ResponseEntity<LiveStreamingCreateResponse> startLiveStreaming(
+            @RequestBody final LiveStreamingCreateRequest request,
+            final HttpSession session
+    ) {
+        final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
+        if (userId == null) {
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
+        }
+
+        final LiveStreamingCreateResponse response = liveStreamingService.startLiveStreamingV2(userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
     @GetMapping("/{liveStreamingId}/metadata")
     public ResponseEntity<LiveStreamingMetadataResponse> getMetadata(
@@ -53,14 +71,8 @@ public class LiveStreamingV2Controller {
             @PathVariable final Long liveStreamingId,
             final HttpSession session
     ) {
-        // clientId를 세션에서 가져오거나 생성
         final String clientId = getOrCreateClientId(session);
-
-        // userId는 로그인한 경우에만 존재
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
-
-        log.debug("GET /live-stats - sessionId: {}, clientId: {}, userId: {}",
-                session.getId(), clientId, userId);
 
         final LiveStatsResponse response = liveStreamingQueryService.pollLiveStats(
                 liveStreamingId,

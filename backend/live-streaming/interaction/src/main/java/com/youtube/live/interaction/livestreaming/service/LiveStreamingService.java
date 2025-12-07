@@ -6,6 +6,7 @@ import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreat
 import com.youtube.live.interaction.livestreaming.service.dto.LiveStreamingCreateResponse;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreaming;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreamingStatus;
+import com.youtube.live.interaction.livestreaming.domain.LiveStreamingSubscriberManager;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreamingViewerManager;
 import com.youtube.live.interaction.livestreaming.domain.LiveStreamingWriter;
 import com.youtube.live.interaction.livestreaming.event.LiveStreamingStartedEvent;
@@ -22,11 +23,44 @@ public class LiveStreamingService {
 
     private final LiveStreamingWriter liveStreamingWriter;
     private final ChannelReader channelReader;
+    private final LiveStreamingSubscriberManager liveStreamingSubscriberManager;
     private final LiveStreamingViewerManager liveStreamingViewerManager;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public LiveStreamingCreateResponse startLiveStreaming(
+    public LiveStreamingCreateResponse startLiveStreamingV1(
+            final Long userId,
+            final LiveStreamingCreateRequest request
+    ) {
+        final Channel channel = channelReader.readByUserId(userId);
+
+        final LiveStreaming savedLiveStreaming = liveStreamingWriter.write(
+                channel,
+                request.title(),
+                request.description(),
+                request.thumbnailUrl(),
+                LiveStreamingStatus.LIVE
+        );
+
+        liveStreamingSubscriberManager.registerStreamer(savedLiveStreaming.getId(), userId);
+
+        eventPublisher.publishEvent(new LiveStreamingStartedEvent(
+                savedLiveStreaming.getId(),
+                savedLiveStreaming.getChannel().getId()
+        ));
+
+        return new LiveStreamingCreateResponse(
+                savedLiveStreaming.getId(),
+                savedLiveStreaming.getTitle(),
+                savedLiveStreaming.getDescription(),
+                savedLiveStreaming.getThumbnailUrl(),
+                savedLiveStreaming.getStatus(),
+                savedLiveStreaming.getChannel().getId()
+        );
+    }
+
+    @Transactional
+    public LiveStreamingCreateResponse startLiveStreamingV2(
             final Long userId,
             final LiveStreamingCreateRequest request
     ) {

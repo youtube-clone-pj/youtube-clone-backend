@@ -23,7 +23,7 @@ import static com.youtube.live.interaction.builder.LiveStreamingBuilder.LiveStre
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class LiveStreamingControllerTest extends RestAssuredTest {
+class LiveStreamingV1ControllerTest extends RestAssuredTest {
 
     @Test
     @DisplayName("로그인한 사용자가 좋아요를 누른다")
