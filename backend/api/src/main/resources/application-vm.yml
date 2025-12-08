@@ -6,3 +6,5 @@ spring:
 logging:
   level:
     root: info
+    com.youtube: info
+    org.hibernate.SQL: info
