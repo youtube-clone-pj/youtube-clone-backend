@@ -1,0 +1,28 @@
+services:
+  mysql:
+    image: mysql:8.4.6
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: youtube
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  app:
+    image: eclipse-temurin:21-jre
+    container_name: spring-app
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app.jar:/app/app.jar
+    working_dir: /app
+    command: java -jar app.jar
+    env_file:
+      - .env
+
+volumes:
+  mysql_data:
