@@ -1,0 +1,10 @@
+spring:
+  config:
+    import:
+      - core-vm.yml
+      - notification-vm.yml
+logging:
+  level:
+    root: info
+    com.youtube: debug
+    org.hibernate.SQL: debug

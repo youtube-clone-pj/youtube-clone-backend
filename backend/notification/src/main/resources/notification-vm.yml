@@ -1,0 +1,5 @@
+webpush:
+  vapid:
+    public-key: ${WEBPUSH_VAPID_PUBLIC}
+    private-key: ${WEBPUSH_VAPID_PRIVATE}
+    subject: ${WEBPUSH_VAPID_SUBJECT}
