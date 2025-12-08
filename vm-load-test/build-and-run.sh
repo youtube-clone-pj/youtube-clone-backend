@@ -5,7 +5,7 @@ set -e
 echo "Spring Boot 빌드 시작"
 
 cd ../backend
-./gradlew :api:bootJar
+./gradlew :api:clean :api:bootJar --no-build-cache
 
 echo "JAR 파일 복사"
 
