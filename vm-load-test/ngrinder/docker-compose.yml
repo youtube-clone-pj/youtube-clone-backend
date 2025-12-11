@@ -1,0 +1,15 @@
+services:
+  controller:
+    image: ngrinder/controller:latest
+    container_name: ngrinder-controller
+    ports:
+      - "8090:80"
+      - "16001:16001"
+      - "12000-12010:12000-12010"
+
+  agent:
+    image: ngrinder/agent:latest
+    container_name: ngrinder-agent
+    command: ["controller:80"]
+    depends_on:
+      - controller
