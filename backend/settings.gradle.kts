@@ -5,7 +5,8 @@ include(
     "core",
     "live-streaming:interaction",
     "notification",
-    "common"
+    "common",
+    "performance-test"
 )
 
 pluginManagement {
