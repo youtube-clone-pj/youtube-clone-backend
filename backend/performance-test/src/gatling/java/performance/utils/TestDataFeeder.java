@@ -12,9 +12,9 @@ import java.util.stream.Stream;
 import static io.gatling.javaapi.core.CoreDsl.listFeeder;
 
 /**
- * 테스트 데이터 Feeder 생성 유틸리티
+ * 범용 테스트 데이터 Feeder 생성 유틸리티
  * <p>
- * 성능 테스트에 필요한 사용자 데이터를 생성합니다.
+ * 성능 테스트에 필요한 사용자 데이터 및 기본 행동 패턴을 생성합니다.
  */
 public class TestDataFeeder {
 
@@ -43,8 +43,6 @@ public class TestDataFeeder {
      * <p>
      * 각 가상 사용자(VU)마다 다른 행동 패턴을 랜덤하게 생성합니다.
      * 실제 시나리오: 사용자마다 라이브 스트리밍 시청 시간이 다름
-     * <p>
-     * 향후 확장 가능: 채팅 전송 빈도, 좋아요 누르는 빈도 등 추가 가능
      * <p>
      * ThreadLocalRandom 사용: Gatling의 멀티스레드 환경에서 동시성 경합 없이 랜덤 값 생성
      *

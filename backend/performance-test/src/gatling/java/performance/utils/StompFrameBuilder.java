@@ -17,6 +17,9 @@ public class StompFrameBuilder {
      * <p>
      * 클라이언트가 서버에 연결할 때 전송하는 프레임입니다.
      * heartbeat 설정을 포함합니다.
+     * <p>
+     * 성능 테스트에서는 채팅 간격이 최대 180초이므로 heartbeat를 180초로 설정합니다.
+     * 실제 채팅 메시지 전송이 heartbeat 역할을 하므로 timeout을 걱정하지 않아도 됩니다.
      *
      * @return STOMP CONNECT 프레임
      */
@@ -24,7 +27,7 @@ public class StompFrameBuilder {
         return """
                 CONNECT
                 accept-version:1.2
-                heart-beat:10000,10000
+                heart-beat:180000,180000
 
                 """ + NULL_CHAR;
     }
@@ -61,9 +64,8 @@ public class StompFrameBuilder {
                 SEND
                 destination:%s
                 content-type:application/json
-                content-length:%d
 
-                %s%s""", destination, body.length(), body, NULL_CHAR);
+                %s%s""", destination, body, NULL_CHAR);
     }
 
     /**

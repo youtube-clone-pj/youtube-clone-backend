@@ -63,13 +63,14 @@ public class PerformanceTestWebSocketConfig implements WebSocketMessageBrokerCon
      *
      * STOMP heartbeat 설정:
      * - setTaskScheduler: TaskScheduler를 설정하여 heartbeat 기능을 활성화
-     * - setHeartbeatValue: [서버→클라이언트 10초, 클라이언트→서버 10초]
+     * - setHeartbeatValue: [서버→클라이언트 180초, 클라이언트→서버 180초]
+     *   성능 테스트에서 채팅 간격이 최대 180초이므로 timeout을 180초로 설정
      */
     @Override
     public void configureMessageBroker(final MessageBrokerRegistry config) {
         config.enableSimpleBroker(WebSocketConfig.Destinations.TOPIC_PREFIX, WebSocketConfig.Destinations.QUEUE_PREFIX)
                 .setTaskScheduler(this.messageBrokerTaskScheduler)
-                .setHeartbeatValue(new long[]{10000, 10000});
+                .setHeartbeatValue(new long[]{180000, 180000});
         config.setApplicationDestinationPrefixes(WebSocketConfig.Destinations.APP_PREFIX);
         config.setPreservePublishOrder(true);
     }

@@ -58,32 +58,43 @@ public class WebSocketEndpoints {
     /**
      * 3. STOMP SUBSCRIBE 프레임 전송 및 초기 메시지 수신
      *
-     * - /app/livestreams/{id}/chat/messages → @SubscribeMapping 호출
+     * 두 개의 구독을 수행합니다:
+     * 1. /app/livestreams/{id}/chat/messages → @SubscribeMapping으로 초기 메시지 수신
+     * 2. /topic/livestreams/{id}/chat/messages → 브로드캐스트 메시지 수신
      *
      * 실행 흐름:
-     * 1. STOMP SUBSCRIBE 프레임 생성
-     * 2. 프레임 전송
-     * 3. InitialChatMessagesResponse (초기 메시지) 수신 대기 (최대 10초)
+     * 1. /app 구독 프레임 전송 → 초기 메시지 수신
+     * 2. /topic 구독 프레임 전송 (브로드캐스트용)
      *
      * @param livestreamId 구독할 라이브 스트리밍 ID
      * @return STOMP SUBSCRIBE ChainBuilder
      */
     public static ChainBuilder stompSubscribe(final Long livestreamId) {
-        final String chatTopic = "/app/livestreams/" + livestreamId + "/chat/messages";
-        final String subscriptionId = "sub-0";
+        final String appTopic = "/app/livestreams/" + livestreamId + "/chat/messages";
+        final String broadcastTopic = "/topic/livestreams/" + livestreamId + "/chat/messages";
 
         return exec(session -> {
-            final String subscribeFrame = StompFrameBuilder.subscribe(subscriptionId, chatTopic);
-            return session.set("subscribeFrame", subscribeFrame);
+            // 1. /app 구독 (초기 메시지용)
+            final String appSubscribeFrame = StompFrameBuilder.subscribe("sub-0", appTopic);
+            return session.set("appSubscribeFrame", appSubscribeFrame);
         })
                 .exec(
-                        ws("STOMP SUBSCRIBE 전송")
-                                .sendText("#{subscribeFrame}")
+                        ws("STOMP SUBSCRIBE 전송 (초기 메시지)")
+                                .sendText("#{appSubscribeFrame}")
                                 .await(10).on(
                                         ws.checkTextMessage("초기 메시지 확인")
                                                 .matching(regex("MESSAGE"))
                                                 .check(bodyString().saveAs("initialMessages"))
                                 )
+                )
+                .exec(session -> {
+                    // 2. /topic 구독 (브로드캐스트용)
+                    final String broadcastSubscribeFrame = StompFrameBuilder.subscribe("sub-1", broadcastTopic);
+                    return session.set("broadcastSubscribeFrame", broadcastSubscribeFrame);
+                })
+                .exec(
+                        ws("STOMP SUBSCRIBE 전송 (브로드캐스트)")
+                                .sendText("#{broadcastSubscribeFrame}")
                 );
     }
 
@@ -128,7 +139,50 @@ public class WebSocketEndpoints {
             );
 
     /**
-     * 6. STOMP DISCONNECT 프레임 전송 및 WebSocket 연결 종료
+     * 6. STOMP SEND 프레임으로 채팅 메시지 전송 및 브로드캐스트 수신
+     *
+     * @param livestreamId 라이브 스트리밍 ID
+     * @return STOMP SEND ChainBuilder
+     *
+     * 실행 흐름:
+     * 1. 세션의 chatMessage를 읽어 ChatMessageRequest JSON 생성
+     * 2. STOMP SEND 프레임 생성
+     * 3. /app/livestreams/{livestreamId}/chat/messages로 전송
+     * 4. MESSAGE 프레임 수신 대기 (브로드캐스트된 메시지)
+     *
+     * 참고: Gatling이 전송부터 브로드캐스트 수신까지의 시간을 자동으로 측정하여 리포트에 포함합니다.
+     */
+    public static ChainBuilder stompSendChatMessage(final Long livestreamId) {
+        final String chatDestination = "/app/livestreams/" + livestreamId + "/chat/messages";
+
+        return exec(session -> {
+            // 세션에서 chatMessage 읽기
+            final String chatMessage = session.getString("chatMessage");
+
+            // ChatMessageRequest JSON 생성
+            final String chatMessageJson = String.format(
+                    "{\"message\":\"%s\",\"chatMessageType\":\"CHAT\"}",
+                    chatMessage
+            );
+
+            // STOMP SEND 프레임 생성
+            final String sendFrame = StompFrameBuilder.send(chatDestination, chatMessageJson);
+
+            return session.set("sendFrame", sendFrame);
+        })
+                .exec(
+                        ws("채팅 메시지 전송 및 브로드캐스트 수신")
+                                .sendText("#{sendFrame}")
+                                .await(10).on(
+                                        ws.checkTextMessage("채팅 메시지 브로드캐스트 확인")
+                                                .matching(regex("MESSAGE"))
+                                                .check(bodyString().saveAs("broadcastMessage"))
+                                )
+                );
+    }
+
+    /**
+     * 7. STOMP DISCONNECT 프레임 전송 및 WebSocket 연결 종료
      *
      * 실행 흐름:
      * 1. STOMP DISCONNECT 프레임 생성

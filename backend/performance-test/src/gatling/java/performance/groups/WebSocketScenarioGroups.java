@@ -2,8 +2,10 @@ package performance.groups;
 
 import io.gatling.javaapi.core.ChainBuilder;
 
-import static io.gatling.javaapi.core.CoreDsl.group;
+import static io.gatling.javaapi.core.CoreDsl.*;
 import static performance.endpoints.WebSocketEndpoints.*;
+import static performance.utils.ChatTestDataFeeder.createInitialChatMessageFeeder;
+import static performance.utils.ChatTestDataFeeder.createNormalChatMessageFeeder;
 import static performance.utils.Config.LIVESTREAM_ID;
 
 /**
@@ -57,5 +59,50 @@ public class WebSocketScenarioGroups {
     public static final ChainBuilder disconnect =
             group("연결 종료").on(
                     disconnectWebSocket
+            );
+
+    /**
+     * 초기 활발한 채팅 그룹
+     *
+     * 라이브 스트리밍 시작 직후 사용자들이 전송하는 짧고 간단한 메시지들을 5분간 반복 전송합니다.
+     *
+     * 실행 흐름:
+     * - 5분(300초) 동안 반복:
+     *   1. 초기 채팅 메시지 Feeder에서 메시지 가져오기
+     *   2. 채팅 메시지 전송 및 브로드캐스트 수신 (지연 시간 측정)
+     *   3. 30~60초 대기 (랜덤)
+     *
+     * 참고: heartbeat timeout은 180초로 설정되어 있으므로 채팅 메시지 전송이 heartbeat 역할을 합니다.
+     */
+    public static final ChainBuilder sendInitialChats =
+            group("초기 활발한 채팅 (5분)").on(
+                    during(300).on(
+                            feed(createInitialChatMessageFeeder())
+                                    .exec(stompSendChatMessage(LIVESTREAM_ID))
+                                    .pause(30, 60)
+                    )
+            );
+
+    /**
+     * 안정화된 채팅 그룹
+     *
+     * 라이브 스트리밍이 진행되면서 사용자들이 전송하는 일반적인 채팅 메시지를 반복 전송합니다.
+     *
+     * 실행 흐름:
+     * - 세션의 normalChatDuration 동안 반복:
+     *   1. 일반 채팅 메시지 Feeder에서 메시지 가져오기
+     *   2. 채팅 메시지 전송 및 브로드캐스트 수신 (지연 시간 측정)
+     *   3. 90~180초 대기 (랜덤)
+     *
+     * 주의: 세션에 normalChatDuration 값이 설정되어 있어야 합니다.
+     *       createChatBehaviorFeeder()를 사용하면 자동으로 설정됩니다.
+     */
+    public static final ChainBuilder sendNormalChats =
+            group("안정화된 채팅").on(
+                    during("#{normalChatDuration}").on(
+                            feed(createNormalChatMessageFeeder())
+                                    .exec(stompSendChatMessage(LIVESTREAM_ID))
+                                    .pause(90, 180)
+                    )
             );
 }
