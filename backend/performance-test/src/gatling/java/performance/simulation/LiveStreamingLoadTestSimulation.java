@@ -6,6 +6,7 @@ import io.gatling.javaapi.core.Simulation;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static performance.groups.AuthScenarioGroups.authenticate;
+import static performance.groups.LiveStreamingScenarioGroups.*;
 import static performance.groups.WebSocketScenarioGroups.*;
 import static performance.utils.ChatTestDataFeeder.createChatBehaviorFeeder;
 import static performance.utils.Protocols.httpProtocol;
@@ -119,20 +120,24 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
      * 인증 사용자 시나리오
      * <p>
      * 실행 흐름:
-     * 1. 로그인
-     * 2. WebSocket 연결 및 구독
-     * 3. pause(1~3초) - 화면 로딩
-     * 4. 초기 활발한 채팅 (5분)
-     * 5. 안정화된 채팅 (나머지 시간)
-     * 6. 연결 종료
+     * 1. 로그인 (세션 획득)
+     * 2. 메타데이터 조회 (라이브 스트리밍 정보 확인)
+     * 3. WebSocket 연결 및 구독 (채팅, 시청자 수, 좋아요 수 브로드캐스트 수신)
+     * 4. pause(1~3초) - 화면 로딩
+     * 5. 좋아요/싫어요 반응 (10% 확률로 반응, 그 중 95% 좋아요, 5% 싫어요)
+     * 6. 초기 활발한 채팅 (5분)
+     * 7. 안정화된 채팅 (나머지 시간)
+     * 8. 연결 종료
      */
     private static final ScenarioBuilder authenticatedScenario = scenario("인증 사용자 라이브 스트리밍 시나리오")
             .feed(createUserFeeder(AUTH_USERS))
             .feed(createChatBehaviorFeeder(MIN_SESSION_DURATION, MAX_SESSION_DURATION))
             .exec(
                     authenticate,
+                    fetchMetadata,
                     connectAndSubscribe,
                     pause(1, 3),
+                    reactToStream,
                     sendInitialChats,
                     sendNormalChats,
                     disconnect
@@ -142,14 +147,16 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
      * 비인증 사용자 시나리오
      * <p>
      * 실행 흐름:
-     * 1. WebSocket 연결 및 구독 (로그인 없이)
-     * 2. pause(1~3초) - 화면 로딩
-     * 3. 연결 유지 (세션 시간 동안 다른 사용자의 채팅 수신)
-     * 4. 연결 종료
+     * 1. 메타데이터 조회 (라이브 스트리밍 정보 확인, 로그인 없이)
+     * 2. WebSocket 연결 및 구독 (채팅, 시청자 수, 좋아요 수 브로드캐스트 수신)
+     * 3. pause(1~3초) - 화면 로딩
+     * 4. 연결 유지 (세션 시간 동안 다른 사용자의 채팅 수신)
+     * 5. 연결 종료
      */
     private static final ScenarioBuilder unauthenticatedScenario = scenario("비인증 사용자 라이브 스트리밍 시나리오")
             .feed(createBehaviorFeeder(MIN_SESSION_DURATION, MAX_SESSION_DURATION))
             .exec(
+                    fetchMetadata,
                     connectAndSubscribe,
                     pause(1, 3),
                     keepAlive,

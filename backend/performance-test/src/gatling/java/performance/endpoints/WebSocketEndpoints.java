@@ -58,20 +58,26 @@ public class WebSocketEndpoints {
     /**
      * 3. STOMP SUBSCRIBE 프레임 전송 및 초기 메시지 수신
      *
-     * 두 개의 구독을 수행합니다:
+     * 다음 구독을 수행합니다:
      * 1. /app/livestreams/{id}/chat/messages → @SubscribeMapping으로 초기 메시지 수신
-     * 2. /topic/livestreams/{id}/chat/messages → 브로드캐스트 메시지 수신
+     * 2. /topic/livestreams/{id}/chat/messages → 채팅 브로드캐스트 메시지 수신
+     * 3. /topic/livestreams/{id}/viewer-count → 시청자 수 카운팅 브로드캐스트 수신
+     * 4. /topic/livestreams/{id}/like-count → 좋아요 수 카운팅 브로드캐스트 수신
      *
      * 실행 흐름:
      * 1. /app 구독 프레임 전송 → 초기 메시지 수신
-     * 2. /topic 구독 프레임 전송 (브로드캐스트용)
+     * 2. /topic 채팅 구독 프레임 전송 (브로드캐스트용)
+     * 3. /topic 시청자 카운팅 구독 프레임 전송
+     * 4. /topic 좋아요 카운팅 구독 프레임 전송
      *
      * @param livestreamId 구독할 라이브 스트리밍 ID
      * @return STOMP SUBSCRIBE ChainBuilder
      */
     public static ChainBuilder stompSubscribe(final Long livestreamId) {
         final String appTopic = "/app/livestreams/" + livestreamId + "/chat/messages";
-        final String broadcastTopic = "/topic/livestreams/" + livestreamId + "/chat/messages";
+        final String chatBroadcastTopic = "/topic/livestreams/" + livestreamId + "/chat/messages";
+        final String viewerCountTopic = "/topic/livestreams/" + livestreamId + "/viewer-count";
+        final String likeCountTopic = "/topic/livestreams/" + livestreamId + "/like-count";
 
         return exec(session -> {
             // 1. /app 구독 (초기 메시지용)
@@ -88,13 +94,31 @@ public class WebSocketEndpoints {
                                 )
                 )
                 .exec(session -> {
-                    // 2. /topic 구독 (브로드캐스트용)
-                    final String broadcastSubscribeFrame = StompFrameBuilder.subscribe("sub-1", broadcastTopic);
-                    return session.set("broadcastSubscribeFrame", broadcastSubscribeFrame);
+                    // 2. /topic 채팅 구독 (브로드캐스트용)
+                    final String chatBroadcastSubscribeFrame = StompFrameBuilder.subscribe("sub-1", chatBroadcastTopic);
+                    return session.set("chatBroadcastSubscribeFrame", chatBroadcastSubscribeFrame);
                 })
                 .exec(
-                        ws("STOMP SUBSCRIBE 전송 (브로드캐스트)")
-                                .sendText("#{broadcastSubscribeFrame}")
+                        ws("STOMP SUBSCRIBE 전송 (채팅 브로드캐스트)")
+                                .sendText("#{chatBroadcastSubscribeFrame}")
+                )
+                .exec(session -> {
+                    // 3. /topic 시청자 카운팅 구독
+                    final String viewerCountSubscribeFrame = StompFrameBuilder.subscribe("sub-2", viewerCountTopic);
+                    return session.set("viewerCountSubscribeFrame", viewerCountSubscribeFrame);
+                })
+                .exec(
+                        ws("STOMP SUBSCRIBE 전송 (시청자 카운팅)")
+                                .sendText("#{viewerCountSubscribeFrame}")
+                )
+                .exec(session -> {
+                    // 4. /topic 좋아요 카운팅 구독
+                    final String likeCountSubscribeFrame = StompFrameBuilder.subscribe("sub-3", likeCountTopic);
+                    return session.set("likeCountSubscribeFrame", likeCountSubscribeFrame);
+                })
+                .exec(
+                        ws("STOMP SUBSCRIBE 전송 (좋아요 카운팅)")
+                                .sendText("#{likeCountSubscribeFrame}")
                 );
     }
 
