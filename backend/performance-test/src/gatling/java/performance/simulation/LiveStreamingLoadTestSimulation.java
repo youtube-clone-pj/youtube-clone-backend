@@ -5,19 +5,24 @@ import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
-import static performance.groups.AuthScenarioGroups.authenticate;
+import static io.gatling.javaapi.http.HttpDsl.Cookie;
+import static io.gatling.javaapi.http.HttpDsl.addCookie;
 import static performance.groups.LiveStreamingScenarioGroups.*;
 import static performance.groups.WebSocketScenarioGroups.*;
 import static performance.utils.ChatTestDataFeeder.createChatBehaviorFeeder;
 import static performance.utils.Protocols.httpProtocol;
+import static performance.utils.SessionManager.loadSessionFeeder;
 import static performance.utils.TestDataFeeder.createBehaviorFeeder;
-import static performance.utils.TestDataFeeder.createUserFeeder;
 
 /**
  * Phase 5: 라이브 스트리밍 부하 주입 패턴 성능 테스트
  * <p>
  * 5만 명의 점진적 유입을 시뮬레이션하여 시스템의 한계를 파악하고
  * 병목 지점을 식별하는 것을 목표로 합니다.
+ * <p>
+ * 전제 조건:
+ * - SessionSetupSimulation을 먼저 실행하여 세션 파일(sessions/sessions.csv)을 생성해야 함
+ * - 생성된 세션 파일의 사용자 수 >= TOTAL_USERS * AUTH_RATIO
  * <p>
  * 단계적 부하 증가 전략:
  * 1. 소규모 테스트 (100명, 1분) - 시나리오 동작 확인
@@ -33,6 +38,11 @@ import static performance.utils.TestDataFeeder.createUserFeeder;
  * <p>
  * 실행 예시:
  * <pre>
+ * # 0단계: 세션 생성 (최초 1회만 실행)
+ * ./gradlew :performance-test:gatlingRun \
+ *   --simulation=performance.simulation.SessionSetupSimulation \
+ *   -DtotalUsers=50000
+ *
  * # 1단계: 소규모 테스트 (100명, spike)
  * ./gradlew :performance-test:gatlingRun \
  *   --simulation=performance.simulation.LiveStreamingLoadTestSimulation \
@@ -120,20 +130,21 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
      * 인증 사용자 시나리오
      * <p>
      * 실행 흐름:
-     * 1. 로그인 (세션 획득)
-     * 2. 메타데이터 조회 (라이브 스트리밍 정보 확인)
-     * 3. WebSocket 연결 및 구독 (채팅, 시청자 수, 좋아요 수 브로드캐스트 수신)
-     * 4. pause(1~3초) - 화면 로딩
-     * 5. 좋아요/싫어요 반응 (10% 확률로 반응, 그 중 95% 좋아요, 5% 싫어요)
-     * 6. 초기 활발한 채팅 (5분)
-     * 7. 안정화된 채팅 (나머지 시간)
-     * 8. 연결 종료
+     * 1. 세션 파일에서 사전 생성된 세션 로드 (userId, email, username, sessionId)
+     * 2. JSESSIONID 쿠키 설정 (이미 로그인된 상태)
+     * 3. 메타데이터 조회 (라이브 스트리밍 정보 확인)
+     * 4. WebSocket 연결 및 구독 (채팅, 시청자 수, 좋아요 수 브로드캐스트 수신)
+     * 5. pause(1~3초) - 화면 로딩
+     * 6. 좋아요/싫어요 반응 (10% 확률로 반응, 그 중 95% 좋아요, 5% 싫어요)
+     * 7. 초기 활발한 채팅 (5분)
+     * 8. 안정화된 채팅 (나머지 시간)
+     * 9. 연결 종료
      */
     private static final ScenarioBuilder authenticatedScenario = scenario("인증 사용자 라이브 스트리밍 시나리오")
-            .feed(createUserFeeder(AUTH_USERS))
+            .feed(loadSessionFeeder())
             .feed(createChatBehaviorFeeder(MIN_SESSION_DURATION, MAX_SESSION_DURATION))
             .exec(
-                    authenticate,
+                    addCookie(Cookie("JSESSIONID", "#{sessionId}").withDomain("localhost").withPath("/")),
                     fetchMetadata,
                     connectAndSubscribe,
                     pause(1, 3),
@@ -227,6 +238,7 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
             System.out.println("램프 지속 시간: " + RAMP_DURATION + "초");
         }
         System.out.println("세션 지속 시간: " + MIN_SESSION_DURATION + "~" + MAX_SESSION_DURATION + "초");
+        System.out.println("세션 파일: " + performance.utils.SessionManager.getSessionFilePath());
         System.out.println("========================================");
 
         setUp(
