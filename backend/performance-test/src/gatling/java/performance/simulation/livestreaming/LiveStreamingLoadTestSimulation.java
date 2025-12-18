@@ -145,7 +145,7 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
             .feed(loadSessionFeeder())
             .feed(createChatBehaviorFeeder(MIN_SESSION_DURATION, MAX_SESSION_DURATION))
             .exec(
-                    addCookie(Cookie("JSESSIONID", "#{sessionId}").withDomain("localhost").withPath("/")),
+                    addCookie(Cookie("JSESSIONID", "#{sessionId}").withPath("/")),
                     fetchMetadata,
                     connectAndSubscribe,
                     pause(1, 3),
