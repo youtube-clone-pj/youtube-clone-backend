@@ -27,10 +27,11 @@ public class SessionManager {
     /**
      * 세션 파일 경로 (고정, 덮어쓰기 방식)
      * <p>
-     * 상대 경로: src/gatling/java/performance/simulation/session/sessions.csv
-     * 절대 경로: backend/performance-test/src/gatling/java/performance/simulation/session/sessions.csv
+     * 프로젝트 루트 기준 경로: backend/performance-test/src/gatling/java/performance/simulation/session/sessions.csv
+     * <p>
+     * Note: run-load-test.sh가 프로젝트 루트로 이동하여 Gradle을 실행하므로 프로젝트 루트 기준 경로 사용
      */
-    private static final String SESSION_FILE_PATH = "src/gatling/java/performance/simulation/session/sessions.csv";
+    private static final String SESSION_FILE_PATH = "backend/performance-test/src/gatling/java/performance/simulation/session/sessions.csv";
 
     private SessionManager() {
         // 유틸리티 클래스: 인스턴스화 방지
