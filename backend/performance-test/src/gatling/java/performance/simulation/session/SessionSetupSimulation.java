@@ -46,7 +46,7 @@ import static performance.utils.TestDataFeeder.createUserFeeder;
  * 주의사항:
  * - 테스트 환경 DB에 loadtest1@test.com ~ loadtestN@test.com 사용자가 미리 존재해야 함
  * - 모든 사용자의 비밀번호: password123
- * - 생성된 세션은 backend/performance-test/sessions/sessions.csv에 저장됨 (덮어쓰기)
+ * - 생성된 세션은 backend/performance-test/src/gatling/java/performance/simulation/session/sessions.csv에 저장됨 (덮어쓰기)
  */
 public class SessionSetupSimulation extends Simulation {
 
@@ -124,7 +124,7 @@ public class SessionSetupSimulation extends Simulation {
         System.out.println("총 사용자 수: " + TOTAL_USERS);
         System.out.println("생성 속도: " + CREATION_RATE + "명/초");
         System.out.println("예상 소요 시간: " + CREATION_DURATION + "초");
-        System.out.println("저장 위치: sessions/sessions.csv");
+        System.out.println("저장 위치: src/gatling/java/performance/simulation/session/sessions.csv");
         System.out.println("========================================");
 
         // 세션 파일 초기화 (덮어쓰기)

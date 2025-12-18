@@ -21,7 +21,8 @@ import static performance.utils.TestDataFeeder.createBehaviorFeeder;
  * 병목 지점을 식별하는 것을 목표로 합니다.
  * <p>
  * 전제 조건:
- * - SessionSetupSimulation을 먼저 실행하여 세션 파일(sessions/sessions.csv)을 생성해야 함
+ * - SessionSetupSimulation을 먼저 실행하여 세션 파일을 생성해야 함
+ * - 세션 파일 위치: src/gatling/java/performance/simulation/session/sessions.csv
  * - 생성된 세션 파일의 사용자 수 >= TOTAL_USERS * AUTH_RATIO
  * <p>
  * 단계적 부하 증가 전략:

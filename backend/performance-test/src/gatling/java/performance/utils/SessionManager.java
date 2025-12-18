@@ -19,7 +19,7 @@ import static io.gatling.javaapi.core.CoreDsl.csv;
  * 실제 성능 테스트에서 해당 세션을 로드하여 사용합니다.
  * <p>
  * 파일 형식: CSV (덮어쓰기 방식)
- * 파일 위치: backend/performance-test/sessions/sessions.csv
+ * 파일 위치: backend/performance-test/src/gatling/java/performance/simulation/session/sessions.csv
  * 파일 구조: userId,email,username,sessionId
  */
 public class SessionManager {
@@ -27,10 +27,10 @@ public class SessionManager {
     /**
      * 세션 파일 경로 (고정, 덮어쓰기 방식)
      * <p>
-     * 상대 경로: sessions/sessions.csv
-     * 절대 경로: backend/performance-test/sessions/sessions.csv
+     * 상대 경로: src/gatling/java/performance/simulation/session/sessions.csv
+     * 절대 경로: backend/performance-test/src/gatling/java/performance/simulation/session/sessions.csv
      */
-    private static final String SESSION_FILE_PATH = "sessions/sessions.csv";
+    private static final String SESSION_FILE_PATH = "src/gatling/java/performance/simulation/session/sessions.csv";
 
     private SessionManager() {
         // 유틸리티 클래스: 인스턴스화 방지

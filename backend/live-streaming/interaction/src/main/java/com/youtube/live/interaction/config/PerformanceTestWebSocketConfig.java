@@ -1,20 +1,26 @@
 package com.youtube.live.interaction.config;
 
 import com.youtube.live.interaction.websocket.auth.AuthUserArgumentResolver;
-import com.youtube.live.interaction.websocket.auth.CustomHandshakeInterceptor;
 import com.youtube.live.interaction.websocket.auth.WebSocketAuthInterceptor;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 성능 테스트 전용 WebSocket 설정
@@ -80,15 +86,16 @@ public class PerformanceTestWebSocketConfig implements WebSocketMessageBrokerCon
      *
      * ⚠️ 프로덕션과의 차이점: SockJS 미사용, Raw WebSocket만 사용
      *
-     * CustomHandshakeInterceptor: WebSocket 연결이 시작될 때 기존 HTTP 세션의 속성들을
-     * WebSocket 세션으로 복사하고, clientId를 WebSocket 세션 속성으로 전달합니다.
+     * PerformanceTestHandshakeInterceptor: 성능 테스트 전용 HandshakeInterceptor
+     * - HTTP 세션이 없으면 자동으로 생성 (getSession(true))
+     * - clientId를 WebSocket 세션 속성으로 전달
      */
     @Override
     public void registerStompEndpoints(final StompEndpointRegistry registry) {
         // Raw WebSocket (SockJS 없음)
         registry.addEndpoint("/ws-direct")
                 .setAllowedOriginPatterns("*")
-                .addInterceptors(new CustomHandshakeInterceptor());
+                .addInterceptors(new PerformanceTestHandshakeInterceptor());
 
         // 클라이언트에서 서버로 수신된 메시지를 순서대로 처리
         registry.setPreserveReceiveOrder(true);
@@ -114,5 +121,44 @@ public class PerformanceTestWebSocketConfig implements WebSocketMessageBrokerCon
     @Override
     public void addArgumentResolvers(final List<HandlerMethodArgumentResolver> argumentResolvers) {
         argumentResolvers.add(new AuthUserArgumentResolver());
+    }
+
+    /**
+     * 성능 테스트 전용 HandshakeInterceptor
+     *
+     * CustomHandshakeInterceptor와의 차이점:
+     * - getSession(true)를 사용하여 세션이 없으면 자동 생성
+     * - 비인증 사용자가 바로 WebSocket 연결 시에도 clientId가 설정되도록 보장
+     */
+    private static class PerformanceTestHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
+
+        private static final String SESSION_CLIENT_ID = "clientId";
+
+        @Override
+        public boolean beforeHandshake(
+                final ServerHttpRequest request,
+                final ServerHttpResponse response,
+                final WebSocketHandler wsHandler,
+                final Map<String, Object> attributes
+        ) throws Exception {
+            // 기본 HTTP 세션 속성 복사
+            final boolean result = super.beforeHandshake(request, response, wsHandler, attributes);
+
+            // HTTP 세션에서 clientId 가져오기 (세션이 없으면 자동 생성)
+            if (request instanceof ServletServerHttpRequest) {
+                final HttpSession session = ((ServletServerHttpRequest) request)
+                        .getServletRequest()
+                        .getSession(true);  // 세션이 없으면 자동 생성
+
+                // clientId가 이미 세션에 있으면 사용, 없으면 세션 ID를 clientId로 사용
+                String clientId = (String) session.getAttribute(SESSION_CLIENT_ID);
+                if (clientId == null) {
+                    clientId = session.getId();
+                }
+                attributes.put(SESSION_CLIENT_ID, clientId);
+            }
+
+            return result;
+        }
     }
 }
