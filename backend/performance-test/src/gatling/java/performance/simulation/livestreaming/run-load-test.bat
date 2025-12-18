@@ -15,6 +15,16 @@ REM 예시:
 REM   run-load-test.bat 1
 REM   run-load-test.bat 4
 
+REM ==================== 환경변수 설정 ====================
+REM 테스트 대상 서버 URL (로컬/VM에 따라 변경)
+SET BASE_URL=http://localhost:8080
+SET WS_BASE_URL=ws://localhost:8080
+
+REM VM에서 실행 시 아래와 같이 수정:
+REM SET BASE_URL=http://192.168.1.100:8080
+REM SET WS_BASE_URL=ws://192.168.1.100:8080
+REM ======================================================
+
 setlocal enabledelayedexpansion
 
 if "%1"=="" (
@@ -54,7 +64,7 @@ if /i not "%confirm%"=="Y" (
 
 echo 테스트를 시작합니다...
 cd /d "%~dp0\..\..\..\..\..\..\..\..\"
-call gradlew :performance-test:gatlingRun --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation -DtotalUsers=100 -Dpattern=spike -DminDuration=360 -DmaxDuration=420
+call gradlew :performance-test:gatlingRun --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation -DtotalUsers=100 -Dpattern=spike -DminDuration=360 -DmaxDuration=420 -DbaseUrl=%BASE_URL% -DwsBaseUrl=%WS_BASE_URL%
 
 goto end
 
@@ -78,7 +88,7 @@ if /i not "%confirm%"=="Y" (
 
 echo 테스트를 시작합니다...
 cd /d "%~dp0\..\..\..\..\..\..\..\..\"
-call gradlew :performance-test:gatlingRun --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation -DtotalUsers=1000 -Dpattern=ramp -DrampDuration=300 -DminDuration=600 -DmaxDuration=900
+call gradlew :performance-test:gatlingRun --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation -DtotalUsers=1000 -Dpattern=ramp -DrampDuration=300 -DminDuration=600 -DmaxDuration=900 -DbaseUrl=%BASE_URL% -DwsBaseUrl=%WS_BASE_URL%
 
 goto end
 
@@ -102,7 +112,7 @@ if /i not "%confirm%"=="Y" (
 
 echo 테스트를 시작합니다...
 cd /d "%~dp0\..\..\..\..\..\..\..\..\"
-call gradlew :performance-test:gatlingRun --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation -DtotalUsers=10000 -Dpattern=ramp -DrampDuration=600 -DminDuration=900 -DmaxDuration=1200
+call gradlew :performance-test:gatlingRun --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation -DtotalUsers=10000 -Dpattern=ramp -DrampDuration=600 -DminDuration=900 -DmaxDuration=1200 -DbaseUrl=%BASE_URL% -DwsBaseUrl=%WS_BASE_URL%
 
 goto end
 
@@ -125,7 +135,7 @@ if /i not "%confirm%"=="Y" (
 
 echo 테스트를 시작합니다...
 cd /d "%~dp0\..\..\..\..\..\..\..\..\"
-call gradlew :performance-test:gatlingRun --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation -DtotalUsers=50000 -Dpattern=realistic -DminDuration=1200 -DmaxDuration=1800
+call gradlew :performance-test:gatlingRun --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation -DtotalUsers=50000 -Dpattern=realistic -DminDuration=1200 -DmaxDuration=1800 -DbaseUrl=%BASE_URL% -DwsBaseUrl=%WS_BASE_URL%
 
 goto end
 
@@ -151,7 +161,7 @@ if /i not "%confirm%"=="Y" (
 
 echo 테스트를 시작합니다...
 cd /d "%~dp0\..\..\..\..\..\..\..\..\"
-call gradlew :performance-test:gatlingRun --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation -DtotalUsers=100000 -Dpattern=realistic -DminDuration=1200 -DmaxDuration=1800
+call gradlew :performance-test:gatlingRun --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation -DtotalUsers=100000 -Dpattern=realistic -DminDuration=1200 -DmaxDuration=1800 -DbaseUrl=%BASE_URL% -DwsBaseUrl=%WS_BASE_URL%
 
 goto end
 

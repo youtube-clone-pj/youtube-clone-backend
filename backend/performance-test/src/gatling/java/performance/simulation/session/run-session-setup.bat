@@ -6,6 +6,16 @@ REM 예시:
 REM   run-session-setup.bat 100         - 100명, 기본 속도(100명/초)
 REM   run-session-setup.bat 50000 200   - 50,000명, 200명/초
 
+REM ==================== 환경변수 설정 ====================
+REM 테스트 대상 서버 URL (로컬/VM에 따라 변경)
+SET BASE_URL=http://localhost:8080
+SET WS_BASE_URL=ws://localhost:8080
+
+REM VM에서 실행 시 아래와 같이 수정:
+REM SET BASE_URL=http://192.168.1.100:8080
+REM SET WS_BASE_URL=ws://192.168.1.100:8080
+REM ======================================================
+
 SET TOTAL_USERS=%1
 SET CREATION_RATE=%2
 
@@ -32,4 +42,6 @@ cd /d "%~dp0\..\..\..\..\..\..\..\..\"
 gradlew.bat :performance-test:gatlingRun ^
   --simulation=performance.simulation.session.SessionSetupSimulation ^
   -DtotalUsers=%TOTAL_USERS% ^
-  -DcreationRate=%CREATION_RATE%
+  -DcreationRate=%CREATION_RATE% ^
+  -DbaseUrl=%BASE_URL% ^
+  -DwsBaseUrl=%WS_BASE_URL%
