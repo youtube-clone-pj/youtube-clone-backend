@@ -7,6 +7,16 @@
 #   ./run-session-setup.sh 100         # 100명, 기본 속도(100명/초)
 #   ./run-session-setup.sh 50000 200   # 50,000명, 200명/초
 
+# ==================== 환경변수 설정 ====================
+# 테스트 대상 서버 URL (로컬/VM에 따라 변경)
+BASE_URL=${BASE_URL:-http://localhost:8080}
+WS_BASE_URL=${WS_BASE_URL:-ws://localhost:8080}
+
+# VM에서 실행 시 아래와 같이 수정:
+# export BASE_URL=http://192.168.1.100:8080
+# export WS_BASE_URL=ws://192.168.1.100:8080
+# ======================================================
+
 TOTAL_USERS=${1:-100}
 CREATION_RATE=${2:-100}
 
@@ -30,4 +40,6 @@ cd "$(dirname "$0")/../../../../../../../" || exit 1
 ./gradlew :performance-test:gatlingRun \
   --simulation=performance.simulation.session.SessionSetupSimulation \
   -DtotalUsers="$TOTAL_USERS" \
-  -DcreationRate="$CREATION_RATE"
+  -DcreationRate="$CREATION_RATE" \
+  -DbaseUrl="$BASE_URL" \
+  -DwsBaseUrl="$WS_BASE_URL"

@@ -20,6 +20,16 @@
 
 set -e
 
+# ==================== 환경변수 설정 ====================
+# 테스트 대상 서버 URL (로컬/VM에 따라 변경)
+BASE_URL=${BASE_URL:-http://localhost:8080}
+WS_BASE_URL=${WS_BASE_URL:-ws://localhost:8080}
+
+# VM에서 실행 시 아래와 같이 수정:
+# export BASE_URL=http://192.168.1.100:8080
+# export WS_BASE_URL=ws://192.168.1.100:8080
+# ======================================================
+
 # 색상 정의
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -60,6 +70,8 @@ run_test() {
 
     cmd="$cmd -DminDuration=$min_duration"
     cmd="$cmd -DmaxDuration=$max_duration"
+    cmd="$cmd -DbaseUrl=$BASE_URL"
+    cmd="$cmd -DwsBaseUrl=$WS_BASE_URL"
 
     echo -e "${YELLOW}실행 명령:${NC}"
     echo "$cmd"
@@ -162,6 +174,8 @@ case $STAGE in
         for arg in "$@"; do
             cmd="$cmd $arg"
         done
+        cmd="$cmd -DbaseUrl=$BASE_URL"
+        cmd="$cmd -DwsBaseUrl=$WS_BASE_URL"
 
         echo -e "${YELLOW}실행 명령:${NC}"
         echo "$cmd"
