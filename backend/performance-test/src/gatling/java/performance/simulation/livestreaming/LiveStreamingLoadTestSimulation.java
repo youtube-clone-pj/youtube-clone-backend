@@ -1,4 +1,4 @@
-package performance.simulation;
+package performance.simulation.livestreaming;
 
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.ScenarioBuilder;
@@ -40,32 +40,32 @@ import static performance.utils.TestDataFeeder.createBehaviorFeeder;
  * <pre>
  * # 0단계: 세션 생성 (최초 1회만 실행)
  * ./gradlew :performance-test:gatlingRun \
- *   --simulation=performance.simulation.SessionSetupSimulation \
+ *   --simulation=performance.simulation.session.SessionSetupSimulation \
  *   -DtotalUsers=50000
  *
  * # 1단계: 소규모 테스트 (100명, spike)
  * ./gradlew :performance-test:gatlingRun \
- *   --simulation=performance.simulation.LiveStreamingLoadTestSimulation \
+ *   --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation \
  *   -DtotalUsers=100 -Dpattern=spike
  *
  * # 2단계: 중규모 테스트 (1,000명, ramp 5분)
  * ./gradlew :performance-test:gatlingRun \
- *   --simulation=performance.simulation.LiveStreamingLoadTestSimulation \
+ *   --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation \
  *   -DtotalUsers=1000 -Dpattern=ramp -DrampDuration=300
  *
  * # 3단계: 대규모 테스트 (10,000명, ramp 10분)
  * ./gradlew :performance-test:gatlingRun \
- *   --simulation=performance.simulation.LiveStreamingLoadTestSimulation \
+ *   --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation \
  *   -DtotalUsers=10000 -Dpattern=ramp -DrampDuration=600
  *
  * # 4단계: 목표 테스트 (50,000명, realistic 패턴)
  * ./gradlew :performance-test:gatlingRun \
- *   --simulation=performance.simulation.LiveStreamingLoadTestSimulation \
+ *   --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation \
  *   -DtotalUsers=50000 -Dpattern=realistic
  *
  * # 5단계: 스트레스 테스트 (100,000명, realistic 패턴)
  * ./gradlew :performance-test:gatlingRun \
- *   --simulation=performance.simulation.LiveStreamingLoadTestSimulation \
+ *   --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation \
  *   -DtotalUsers=100000 -Dpattern=realistic
  * </pre>
  */

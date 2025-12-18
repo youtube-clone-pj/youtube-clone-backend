@@ -1,4 +1,4 @@
-package performance.simulation;
+package performance.simulation.session;
 
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
@@ -29,17 +29,17 @@ import static performance.utils.TestDataFeeder.createUserFeeder;
  * <pre>
  * # 소규모 테스트용 세션 생성 (100명)
  * ./gradlew :performance-test:gatlingRun \
- *   --simulation=performance.simulation.SessionSetupSimulation \
+ *   --simulation=performance.simulation.session.SessionSetupSimulation \
  *   -DtotalUsers=100
  *
  * # 중규모 테스트용 세션 생성 (1,000명)
  * ./gradlew :performance-test:gatlingRun \
- *   --simulation=performance.simulation.SessionSetupSimulation \
+ *   --simulation=performance.simulation.session.SessionSetupSimulation \
  *   -DtotalUsers=1000
  *
  * # 대규모 테스트용 세션 생성 (50,000명)
  * ./gradlew :performance-test:gatlingRun \
- *   --simulation=performance.simulation.SessionSetupSimulation \
+ *   --simulation=performance.simulation.session.SessionSetupSimulation \
  *   -DtotalUsers=50000
  * </pre>
  * <p>
