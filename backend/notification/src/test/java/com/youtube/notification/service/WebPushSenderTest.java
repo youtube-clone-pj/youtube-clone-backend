@@ -34,7 +34,7 @@ class WebPushSenderTest {
 
     @BeforeEach
     void setUp() {
-        sut = new WebPushSender(pushAsyncService);
+        sut = new HttpWebPushSender(pushAsyncService);
     }
 
     @Test

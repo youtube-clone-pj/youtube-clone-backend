@@ -1,3 +1,7 @@
+notification:
+  web-push:
+    enabled: false  # 성능 테스트 시 웹푸시 발송 비활성화 (DB는 실행, 실제 HTTP 요청은 스킵)
+
 webpush:
   vapid:
     public-key: ${WEBPUSH_VAPID_PUBLIC}

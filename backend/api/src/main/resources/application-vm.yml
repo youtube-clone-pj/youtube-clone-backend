@@ -1,10 +1,39 @@
 spring:
+  application:
+    name: youtube-clone
   config:
     import:
       - core-vm.yml
       - notification-vm.yml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    enable:
+      hikaricp: true
+      http: true
+      jdbc: true
+      tomcat: true
+    tags:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+server:
+  tomcat:
+    mbeanregistry:
+      enabled: true
+
 logging:
   level:
     root: info
-    com.youtube: debug
-    org.hibernate.SQL: debug
+    com.youtube: info
+    org.hibernate.SQL: info

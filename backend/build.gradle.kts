@@ -31,6 +31,11 @@ val testContainerMySqlVersion: String by project
 val querydslVersion: String by project
 val awaitilityVersion: String by project
 subprojects {
+	if (name == "performance-test") {
+		// performance-test 모듈은 subprojects의 의존성을 주입받지 않음
+		return@subprojects
+	}
+
 	plugins.apply("java")
 	plugins.apply("org.springframework.boot")
 	plugins.apply("io.spring.dependency-management")

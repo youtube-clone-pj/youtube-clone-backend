@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
@@ -27,32 +28,34 @@ public class LiveStreamingViewerCountPublisher {
     /**
      * 클라이언트가 특정 토픽을 구독할 때 호출
      */
-    //TODO 비동기 처리? 왜냐하면 liveStreamingSubscriberManager 로직 때문에? 여기 아니면 LiveStreamingSubscriberManager.addSubscriber가 비동기?
     @EventListener
     public void handleSubscribe(final SessionSubscribeEvent event) {
-        final StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        final String destination = accessor.getDestination();
-        final String simpSessionId = accessor.getSessionId();
+        final String destination;
+        final String simpSessionId;
+        final Long userId;
+        final String clientId;
 
-        if (destination != null && destination.matches("/topic/livestreams/\\d+/chat/messages")) {
-            final Long livestreamId = extractLivestreamId(destination);
+        final StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(event.getMessage(), StompHeaderAccessor.class);
+            destination = accessor.getDestination();
+            simpSessionId = accessor.getSessionId();
 
-            final Long userId = (Long) accessor.getSessionAttributes().get("userId");
-            final String clientId = (String) accessor.getSessionAttributes().get("clientId");
-
-            if (clientId == null) {
-                log.error("LiveStreaming 시청자 카운팅 실패 - clientId 누락, simpSessionId: {}, destination: {}",
-                        simpSessionId, destination);
+            if (destination == null || !destination.matches("/topic/livestreams/\\d+/chat/messages")) {
                 return;
             }
 
-            liveStreamingSubscriberManager.addSubscriber(
-                    livestreamId,
-                    simpSessionId,
-                    userId,
-                    clientId
-            );
+            userId = (Long) accessor.getSessionAttributes().get("userId");
+            clientId = (String) accessor.getSessionAttributes().get("clientId");
+
+        if (clientId == null) {
+            return;
         }
+
+        liveStreamingSubscriberManager.addSubscriber(
+                extractLivestreamId(destination),
+                simpSessionId,
+                userId,
+                clientId
+        );
     }
 
     /**
