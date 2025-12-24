@@ -247,10 +247,27 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
                 unauthenticatedScenario.injectOpen(createInjectionProfile(UNAUTH_USERS))
         )
                 .assertions(
+                        // ========== 전역 검증 ==========
                         // 에러율 < 1%
                         global().failedRequests().percent().lt(1.0),
-                        // 95 percentile 응답 시간 < 2초
-                        global().responseTime().percentile3().lt(2000)
+
+                        // 입장 시 한 번만 호출되는 핵심 요청
+                        details("라이브 스트리밍 메타데이터 조회").responseTime().percentile(95.0).lt(300),
+                        details("라이브 스트리밍 메타데이터 조회").responseTime().percentile(99.0).lte(600),
+
+                        // WebSocket SEND부터 브로드캐스트 수신까지
+                        details("채팅 메시지 전송 및 브로드캐스트 수신").responseTime().percentile(95.0).lt(150),
+                        details("채팅 메시지 전송 및 브로드캐스트 수신").responseTime().percentile(99.0).lte(300),
+
+                        // WebSocket 구독 시 초기 메시지 수신
+                        details("초기 메시지 확인").responseTime().percentile(95.0).lt(500),
+                        details("초기 메시지 확인").responseTime().percentile(99.0).lte(1000),
+
+                        // 인증 사용자의 좋아요/싫어요
+                        details("좋아요 선택").responseTime().percentile(95.0).lt(1000),
+                        details("좋아요 선택").responseTime().percentile(99.0).lte(2000),
+                        details("싫어요 선택").responseTime().percentile(95.0).lt(1000),
+                        details("싫어요 선택").responseTime().percentile(99.0).lte(2000)
                 )
                 .protocols(httpProtocol);
     }
