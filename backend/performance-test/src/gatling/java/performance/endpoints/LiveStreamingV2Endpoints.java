@@ -73,7 +73,7 @@ public class LiveStreamingV2Endpoints {
             .body(StringBody("""
                     {
                         "message": "#{chatMessage}",
-                        "chatMessageType": "NORMAL"
+                        "chatMessageType": "CHAT"
                     }
                     """))
             .check(status().is(201));
@@ -82,9 +82,10 @@ public class LiveStreamingV2Endpoints {
      * 좋아요 토글 엔드포인트 (인증 필요)
      * <p>
      * 세션이 있는 인증 사용자가 좋아요를 토글합니다.
+     * V1 API 사용 (V2에는 좋아요/싫어요 엔드포인트가 없음)
      */
-    public static final HttpRequestActionBuilder toggleLike = http("좋아요 선택 (V2)")
-            .post("/api/v2/livestreams/1/likes")
+    public static final HttpRequestActionBuilder toggleLike = http("좋아요 선택 (V1)")
+            .post("/api/v1/livestreams/1/likes")
             .body(StringBody("""
                     {
                         "reactionType": "LIKE"
@@ -96,9 +97,10 @@ public class LiveStreamingV2Endpoints {
      * 싫어요 토글 엔드포인트 (인증 필요)
      * <p>
      * 세션이 있는 인증 사용자가 싫어요를 토글합니다.
+     * V1 API 사용 (V2에는 좋아요/싫어요 엔드포인트가 없음)
      */
-    public static final HttpRequestActionBuilder toggleDislike = http("싫어요 선택 (V2)")
-            .post("/api/v2/livestreams/1/likes")
+    public static final HttpRequestActionBuilder toggleDislike = http("싫어요 선택 (V1)")
+            .post("/api/v1/livestreams/1/likes")
             .body(StringBody("""
                     {
                         "reactionType": "DISLIKE"

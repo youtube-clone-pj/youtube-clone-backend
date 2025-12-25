@@ -227,23 +227,31 @@ public class LiveStreamingPollingLoadTestSimulation extends Simulation {
                         details("메타데이터 조회 (폴링)", "라이브 스트리밍 메타데이터 조회 (V2)").responseTime().percentile(95.0).lt(300),
                         details("메타데이터 조회 (폴링)", "라이브 스트리밍 메타데이터 조회 (V2)").responseTime().percentile(99.0).lte(600),
 
-                        // 4초마다 호출되는 실시간 채팅 조회 (가장 빈번한 요청, group 밖에서 직접 호출)
-                        details("새 채팅 폴링").responseTime().percentile(95.0).lt(400),
-                        details("새 채팅 폴링").responseTime().percentile(99.0).lte(900),
-
                         // 입장 시 한 번만 호출되는 채팅 목록 조회
                         details("초기 채팅 조회", "초기 채팅 조회").responseTime().percentile(95.0).lt(500),
                         details("초기 채팅 조회", "초기 채팅 조회").responseTime().percentile(99.0).lte(1000),
 
-                        // 20초마다 호출되는 실시간 통계 조회 (group 밖에서 직접 호출)
-                        details("실시간 통계 폴링 + Heartbeat").responseTime().percentile(95.0).lt(700),
-                        details("실시간 통계 폴링 + Heartbeat").responseTime().percentile(99.0).lte(2000),
+                        // 4초마다 호출되는 실시간 채팅 조회 (가장 빈번한 요청)
+                        // 인증 사용자 그룹
+                        details("인증 사용자 행동 (채팅 + 폴링)", "새 채팅 폴링").responseTime().percentile(95.0).lt(400),
+                        details("인증 사용자 행동 (채팅 + 폴링)", "새 채팅 폴링").responseTime().percentile(99.0).lte(900),
+                        // 비인증 사용자 그룹
+                        details("비인증 사용자 행동 (폴링만)", "새 채팅 폴링").responseTime().percentile(95.0).lt(400),
+                        details("비인증 사용자 행동 (폴링만)", "새 채팅 폴링").responseTime().percentile(99.0).lte(900),
 
-                        // 인증 사용자의 좋아요/싫어요
-                        details("좋아요/싫어요 반응 (폴링)", "좋아요 선택 (V2)").responseTime().percentile(95.0).lt(1000),
-                        details("좋아요/싫어요 반응 (폴링)", "좋아요 선택 (V2)").responseTime().percentile(99.0).lte(2000),
-                        details("좋아요/싫어요 반응 (폴링)", "싫어요 선택 (V2)").responseTime().percentile(95.0).lt(1000),
-                        details("좋아요/싫어요 반응 (폴링)", "싫어요 선택 (V2)").responseTime().percentile(99.0).lte(2000)
+                        // 20초마다 호출되는 실시간 통계 조회
+                        // 인증 사용자 그룹
+                        details("인증 사용자 행동 (채팅 + 폴링)", "실시간 통계 폴링 + Heartbeat").responseTime().percentile(95.0).lt(700),
+                        details("인증 사용자 행동 (채팅 + 폴링)", "실시간 통계 폴링 + Heartbeat").responseTime().percentile(99.0).lte(2000),
+                        // 비인증 사용자 그룹
+                        details("비인증 사용자 행동 (폴링만)", "실시간 통계 폴링 + Heartbeat").responseTime().percentile(95.0).lt(700),
+                        details("비인증 사용자 행동 (폴링만)", "실시간 통계 폴링 + Heartbeat").responseTime().percentile(99.0).lte(2000),
+
+                        // 인증 사용자의 좋아요/싫어요 (V1 API 사용)
+                        details("좋아요/싫어요 반응 (폴링)", "좋아요 선택 (V1)").responseTime().percentile(95.0).lt(1000),
+                        details("좋아요/싫어요 반응 (폴링)", "좋아요 선택 (V1)").responseTime().percentile(99.0).lte(2000),
+                        details("좋아요/싫어요 반응 (폴링)", "싫어요 선택 (V1)").responseTime().percentile(95.0).lt(1000),
+                        details("좋아요/싫어요 반응 (폴링)", "싫어요 선택 (V1)").responseTime().percentile(99.0).lte(2000)
                 )
                 .protocols(httpProtocol);
     }
