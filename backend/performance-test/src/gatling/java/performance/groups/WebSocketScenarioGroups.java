@@ -2,6 +2,8 @@ package performance.groups;
 
 import io.gatling.javaapi.core.ChainBuilder;
 
+import java.time.Duration;
+
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static performance.endpoints.WebSocketEndpoints.*;
 import static performance.utils.ChatTestDataFeeder.createInitialChatMessageFeeder;
@@ -103,6 +105,42 @@ public class WebSocketScenarioGroups {
                             feed(createNormalChatMessageFeeder())
                                     .exec(stompSendChatMessage(LIVESTREAM_ID))
                                     .pause(90, 180)
+                    )
+            );
+
+    /**
+     * 인증 사용자의 전체 세션 동안의 행동 (확률 기반 채팅)
+     * <p>
+     * 채팅 전송을 확률 기반으로 수행하여 실제 사용자 행동 패턴을 시뮬레이션합니다.
+     * <p>
+     * 실행 흐름:
+     * - 초기 5분: 10% 확률로 채팅 전송 (평균 40초에 한 번)
+     * - 이후: 4% 확률로 채팅 전송 (평균 100초에 한 번)
+     * - 채팅을 보내지 않을 때는 30~60초 대기
+     */
+    public static final ChainBuilder authenticatedUserWebSocketBehavior =
+            group("인증 사용자 행동 (확률 기반 채팅)").on(
+                    // 초기 5분 (10% 확률)
+                    during(session -> Duration.ofSeconds(Math.min(300, session.getInt("sessionDuration")))).on(
+                            randomSwitch().on(
+                                    // 10% 확률로 채팅 전송
+                                    percent(10.0).then(
+                                            feed(createInitialChatMessageFeeder())
+                                                    .exec(stompSendChatMessage(LIVESTREAM_ID))
+                                    )
+                            )
+                            .pause(30, 60)
+                    )
+                    // 나머지 시간 (4% 확률)
+                    .during(session -> Duration.ofSeconds(Math.max(0, session.getInt("sessionDuration") - 300))).on(
+                            randomSwitch().on(
+                                    // 4% 확률로 채팅 전송
+                                    percent(4.0).then(
+                                            feed(createNormalChatMessageFeeder())
+                                                    .exec(stompSendChatMessage(LIVESTREAM_ID))
+                                    )
+                            )
+                            .pause(90, 180)
                     )
             );
 }
