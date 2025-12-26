@@ -44,11 +44,13 @@ public class LiveStreamingV2Endpoints {
      * <p>
      * lastChatId 없이 호출하여 최초 채팅 목록을 가져옵니다.
      * 응답의 lastChatId를 세션에 저장하여 이후 폴링에 사용합니다.
+     * <p>
+     * lastChatId가 null일 수 있으므로 optional()을 사용합니다.
      */
     public static final HttpRequestActionBuilder getInitialChats = http("초기 채팅 조회")
             .get("/api/v2/livestreams/1/chats")
             .check(status().is(200))
-            .check(jsonPath("$.lastChatId").saveAs("lastChatId"));
+            .check(jsonPath("$.lastChatId").optional().saveAs("lastChatId"));
 
     /**
      * 새로운 채팅 조회 엔드포인트
@@ -56,11 +58,22 @@ public class LiveStreamingV2Endpoints {
      * lastChatId를 파라미터로 전달하여 이후 채팅만 가져옵니다.
      * 세션의 lastChatId 값을 사용합니다.
      * 응답의 lastChatId로 세션값을 업데이트하여 다음 폴링에 사용합니다.
+     * <p>
+     * lastChatId가 세션에 없거나 null이면 쿼리 파라미터 없이 호출하여 초기 채팅을 가져옵니다.
+     * lastChatId가 null일 수 있으므로 optional()을 사용합니다.
      */
     public static final HttpRequestActionBuilder pollNewChats = http("새 채팅 폴링")
-            .get("/api/v2/livestreams/1/chats?lastChatId=#{lastChatId}")
+            .get(session -> {
+                final String baseUrl = "/api/v2/livestreams/1/chats";
+                final String lastChatId = session.getString("lastChatId");
+                // lastChatId가 있고, "null" 문자열이 아니며, 비어있지 않을 때만 쿼리 파라미터 추가
+                if (lastChatId != null && !lastChatId.equals("null") && !lastChatId.isEmpty()) {
+                    return baseUrl + "?lastChatId=" + lastChatId;
+                }
+                return baseUrl;
+            })
             .check(status().is(200))
-            .check(jsonPath("$.lastChatId").saveAs("lastChatId"));
+            .check(jsonPath("$.lastChatId").optional().saveAs("lastChatId"));
 
     /**
      * 채팅 메시지 전송 엔드포인트 (인증 필요)
