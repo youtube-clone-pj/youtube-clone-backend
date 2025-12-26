@@ -415,11 +415,12 @@ SELECT
     (FLOOR(RAND() * 100000) + 1) AS user_id,  -- 랜덤 유저
     CONCAT('채팅 메시지 #', cs.n, ' - 라이브 ', ls.id) AS message,
     'CHAT' AS message_type,
-    DATE_ADD(ls.created_date, INTERVAL FLOOR(RAND() * 3600) SECOND) AS created_date,
+    DATE_SUB(NOW(), INTERVAL (24 + FLOOR(RAND() * 696)) HOUR) AS created_date,
     NOW() AS last_modified_date
 FROM chat_seq cs
 CROSS JOIN live_streaming ls
-WHERE ls.channel_id BETWEEN 1 AND 10;
+WHERE ls.channel_id BETWEEN 1 AND 10
+    AND ls.id != 1;  -- 성능 테스트용 LIVE 스트리밍(id=1) 제외
 
 COMMIT;
 
@@ -437,11 +438,12 @@ SELECT
     (FLOOR(RAND() * 100000) + 1) AS user_id,
     CONCAT('채팅 메시지 #', cs.n, ' - 라이브 ', ls.id) AS message,
     'CHAT' AS message_type,
-    DATE_ADD(ls.created_date, INTERVAL FLOOR(RAND() * 3600) SECOND) AS created_date,
+    DATE_SUB(NOW(), INTERVAL (24 + FLOOR(RAND() * 696)) HOUR) AS created_date,
     NOW() AS last_modified_date
 FROM chat_seq cs
 CROSS JOIN live_streaming ls
-WHERE ls.channel_id BETWEEN 11 AND 110;
+WHERE ls.channel_id BETWEEN 11 AND 110
+    AND ls.id != 1;  -- 성능 테스트용 LIVE 스트리밍(id=1) 제외
 
 COMMIT;
 
@@ -459,11 +461,12 @@ SELECT
     (FLOOR(RAND() * 100000) + 1) AS user_id,
     CONCAT('채팅 메시지 #', cs.n, ' - 라이브 ', ls.id) AS message,
     'CHAT' AS message_type,
-    DATE_ADD(ls.created_date, INTERVAL FLOOR(RAND() * 3600) SECOND) AS created_date,
+    DATE_SUB(NOW(), INTERVAL (24 + FLOOR(RAND() * 696)) HOUR) AS created_date,
     NOW() AS last_modified_date
 FROM chat_seq cs
 CROSS JOIN live_streaming ls
-WHERE ls.channel_id BETWEEN 111 AND 1110;
+WHERE ls.channel_id BETWEEN 111 AND 1110
+    AND ls.id != 1;  -- 성능 테스트용 LIVE 스트리밍(id=1) 제외
 
 COMMIT;
 
