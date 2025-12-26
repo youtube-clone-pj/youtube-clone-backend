@@ -17,6 +17,8 @@
 -- =====================================================
 -- 외래키 체크를 임시로 비활성화하여 순서 상관없이 삭제 가능하게 함
 
+USE youtube;
+
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- TRUNCATE를 사용하여 빠르게 삭제 및 AUTO_INCREMENT 초기화
@@ -206,7 +208,7 @@ WITH RECURSIVE user_seq AS (
 )
 SELECT
     CONCAT('loadtest', n) AS username,
-    '$2a$10$dummypasswordhash1234567890123456789012345678901234' AS password,  -- BCrypt 형식
+    '$2a$10$/8/Po2Smfk0RyyVeHW4r6u2Xzpnh/Drw81HjpJZo1Q/4LrA0zj8qK' AS password,  -- BCrypt 해시: password123
     CONCAT('loadtest', n, '@test.com') AS email,
     CONCAT('https://storage.youtube.com/profile/', n, '.jpg') AS profile_image_url,
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 365) DAY) AS created_date,
