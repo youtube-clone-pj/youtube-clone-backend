@@ -205,9 +205,9 @@ WITH RECURSIVE user_seq AS (
     SELECT n + 1 FROM user_seq WHERE n < 100000
 )
 SELECT
-    CONCAT('user', LPAD(n, 6, '0')) AS username,
+    CONCAT('loadtest', n) AS username,
     '$2a$10$dummypasswordhash1234567890123456789012345678901234' AS password,  -- BCrypt 형식
-    CONCAT('user', LPAD(n, 6, '0'), '@loadtest.com') AS email,
+    CONCAT('loadtest', n, '@test.com') AS email,
     CONCAT('https://storage.youtube.com/profile/', n, '.jpg') AS profile_image_url,
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 365) DAY) AS created_date,
     NOW() AS last_modified_date
