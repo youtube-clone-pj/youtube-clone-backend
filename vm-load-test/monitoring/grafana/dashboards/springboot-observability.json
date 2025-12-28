@@ -34,100 +34,6 @@
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 0
-      },
-      "id": 29,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.3.0",
-      "targets": [
-        {
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.99,sum by (le) (rate(hikaricp_connections_acquire_seconds_bucket{application=~\"$app_name\"}[1m])))*1000\r\n",
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "HikariCP Acquire Time (p99, ms)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -1309,7 +1215,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 10,
+            "fillOpacity": 0,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1323,7 +1229,7 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "never",
+            "showPoints": "auto",
             "showValues": false,
             "spanNulls": false,
             "stacking": {
@@ -1347,8 +1253,7 @@
                 "value": 80
               }
             ]
-          },
-          "unit": "short"
+          }
         },
         "overrides": []
       },
@@ -1358,7 +1263,7 @@
         "x": 12,
         "y": 30
       },
-      "id": 25,
+      "id": 29,
       "options": {
         "legend": {
           "calcs": [],
@@ -1375,59 +1280,14 @@
       "pluginVersion": "12.3.0",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
           "editorMode": "code",
-          "exemplar": true,
-          "expr": "hikaricp_connections_active{application=\"$app_name\"}",
-          "interval": "",
-          "legendFormat": "Active Connections",
+          "expr": "histogram_quantile(0.99,sum by (le) (rate(hikaricp_connections_acquire_seconds_bucket{application=~\"$app_name\"}[1m])))*1000\r\n",
+          "legendFormat": "__auto",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "hikaricp_connections_idle{application=\"$app_name\"}",
-          "interval": "",
-          "legendFormat": "Idle Connections",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "hikaricp_connections_max{application=\"$app_name\"}",
-          "interval": "",
-          "legendFormat": "Max Connections",
-          "range": true,
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "hikaricp_connections_min{application=\"$app_name\"}",
-          "interval": "",
-          "legendFormat": "Min Connections",
-          "range": true,
-          "refId": "D"
         }
       ],
-      "title": "HikariCP Connection Pool",
+      "title": "HikariCP Acquire Time (p99, ms)",
       "type": "timeseries"
     },
     {
@@ -1565,7 +1425,41 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -1576,16 +1470,12 @@
                 "value": 0
               },
               {
-                "color": "yellow",
-                "value": 70
-              },
-              {
                 "color": "red",
-                "value": 90
+                "value": 80
               }
             ]
           },
-          "unit": "percent"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -1595,23 +1485,19 @@
         "x": 12,
         "y": 38
       },
-      "id": 27,
+      "id": 25,
       "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "pluginVersion": "12.3.0",
       "targets": [
@@ -1622,9 +1508,9 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(tomcat_threads_busy_threads{application=\"$app_name\"} / tomcat_threads_config_max_threads{application=\"$app_name\"}) * 100",
+          "expr": "hikaricp_connections_active{application=\"$app_name\"}",
           "interval": "",
-          "legendFormat": "Thread Pool Usage %",
+          "legendFormat": "Active Connections",
           "range": true,
           "refId": "A"
         },
@@ -1635,15 +1521,41 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(hikaricp_connections_active{application=\"$app_name\"} / hikaricp_connections_max{application=\"$app_name\"}) * 100",
+          "expr": "hikaricp_connections_idle{application=\"$app_name\"}",
           "interval": "",
-          "legendFormat": "Connection Pool Usage %",
+          "legendFormat": "Idle Connections",
           "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "exemplar": true,
+          "expr": "hikaricp_connections_max{application=\"$app_name\"}",
+          "interval": "",
+          "legendFormat": "Max Connections",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "exemplar": true,
+          "expr": "hikaricp_connections_min{application=\"$app_name\"}",
+          "interval": "",
+          "legendFormat": "Min Connections",
+          "range": true,
+          "refId": "D"
         }
       ],
-      "title": "Pool Usage Percentage",
-      "type": "stat"
+      "title": "HikariCP Connection Pool",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -1758,6 +1670,94 @@
       ],
       "title": "HikariCP Connection Times",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 46
+      },
+      "id": 27,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.3.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "exemplar": true,
+          "expr": "(tomcat_threads_busy_threads{application=\"$app_name\"} / tomcat_threads_config_max_threads{application=\"$app_name\"}) * 100",
+          "interval": "",
+          "legendFormat": "Thread Pool Usage %",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "exemplar": true,
+          "expr": "(hikaricp_connections_active{application=\"$app_name\"} / hikaricp_connections_max{application=\"$app_name\"}) * 100",
+          "interval": "",
+          "legendFormat": "Connection Pool Usage %",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Pool Usage Percentage",
+      "type": "stat"
     }
   ],
   "preload": false,
@@ -1816,5 +1816,5 @@
   "timezone": "browser",
   "title": "Spring Boot Observability",
   "uid": "dLsDQIUnzb",
-  "version": 1
+  "version": 2
 }
