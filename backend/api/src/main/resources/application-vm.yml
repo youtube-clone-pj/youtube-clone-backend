@@ -25,6 +25,7 @@ management:
     distribution:
       percentiles-histogram:
         http.server.requests: true
+        hikaricp.connections.acquire: true
   prometheus:
     metrics:
       export:
