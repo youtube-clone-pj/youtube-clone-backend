@@ -241,10 +241,10 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
                         details("WebSocket 연결 및 구독", "초기 메시지 확인").responseTime().percentile(99.0).lte(1000),
 
                         // 인증 사용자의 좋아요/싫어요
-                        details("좋아요/싫어요 반응", "좋아요 선택").responseTime().percentile(95.0).lt(1000),
-                        details("좋아요/싫어요 반응", "좋아요 선택").responseTime().percentile(99.0).lte(2000),
-                        details("좋아요/싫어요 반응", "싫어요 선택").responseTime().percentile(95.0).lt(1000),
-                        details("좋아요/싫어요 반응", "싫어요 선택").responseTime().percentile(99.0).lte(2000)
+                        details("좋아요/싫어요 반응", "좋아요 선택").responseTime().percentile(95.0).lt(600),
+                        details("좋아요/싫어요 반응", "좋아요 선택").responseTime().percentile(99.0).lte(1200),
+                        details("좋아요/싫어요 반응", "싫어요 선택").responseTime().percentile(95.0).lt(600),
+                        details("좋아요/싫어요 반응", "싫어요 선택").responseTime().percentile(99.0).lte(1200)
                 )
                 .protocols(httpProtocol);
     }

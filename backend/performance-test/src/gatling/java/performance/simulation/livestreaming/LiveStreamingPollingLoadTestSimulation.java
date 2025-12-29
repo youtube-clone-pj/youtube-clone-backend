@@ -234,24 +234,24 @@ public class LiveStreamingPollingLoadTestSimulation extends Simulation {
                         // 4초마다 호출되는 실시간 채팅 조회 (가장 빈번한 요청)
                         // 인증 사용자 그룹
                         details("인증 사용자 행동 (채팅 + 폴링)", "새 채팅 폴링").responseTime().percentile(95.0).lt(400),
-                        details("인증 사용자 행동 (채팅 + 폴링)", "새 채팅 폴링").responseTime().percentile(99.0).lte(900),
+                        details("인증 사용자 행동 (채팅 + 폴링)", "새 채팅 폴링").responseTime().percentile(99.0).lte(700),
                         // 비인증 사용자 그룹
                         details("비인증 사용자 행동 (폴링만)", "새 채팅 폴링").responseTime().percentile(95.0).lt(400),
-                        details("비인증 사용자 행동 (폴링만)", "새 채팅 폴링").responseTime().percentile(99.0).lte(900),
+                        details("비인증 사용자 행동 (폴링만)", "새 채팅 폴링").responseTime().percentile(99.0).lte(700),
 
                         // 20초마다 호출되는 실시간 통계 조회
                         // 인증 사용자 그룹
                         details("인증 사용자 행동 (채팅 + 폴링)", "실시간 통계 폴링 + Heartbeat").responseTime().percentile(95.0).lt(700),
-                        details("인증 사용자 행동 (채팅 + 폴링)", "실시간 통계 폴링 + Heartbeat").responseTime().percentile(99.0).lte(2000),
+                        details("인증 사용자 행동 (채팅 + 폴링)", "실시간 통계 폴링 + Heartbeat").responseTime().percentile(99.0).lte(1200),
                         // 비인증 사용자 그룹
                         details("비인증 사용자 행동 (폴링만)", "실시간 통계 폴링 + Heartbeat").responseTime().percentile(95.0).lt(700),
-                        details("비인증 사용자 행동 (폴링만)", "실시간 통계 폴링 + Heartbeat").responseTime().percentile(99.0).lte(2000),
+                        details("비인증 사용자 행동 (폴링만)", "실시간 통계 폴링 + Heartbeat").responseTime().percentile(99.0).lte(1200),
 
                         // 인증 사용자의 좋아요/싫어요 (V1 API 사용)
-                        details("좋아요/싫어요 반응 (폴링)", "좋아요 선택 (V1)").responseTime().percentile(95.0).lt(1000),
-                        details("좋아요/싫어요 반응 (폴링)", "좋아요 선택 (V1)").responseTime().percentile(99.0).lte(2000),
-                        details("좋아요/싫어요 반응 (폴링)", "싫어요 선택 (V1)").responseTime().percentile(95.0).lt(1000),
-                        details("좋아요/싫어요 반응 (폴링)", "싫어요 선택 (V1)").responseTime().percentile(99.0).lte(2000)
+                        details("좋아요/싫어요 반응 (폴링)", "좋아요 선택 (V1)").responseTime().percentile(95.0).lt(600),
+                        details("좋아요/싫어요 반응 (폴링)", "좋아요 선택 (V1)").responseTime().percentile(99.0).lte(1200),
+                        details("좋아요/싫어요 반응 (폴링)", "싫어요 선택 (V1)").responseTime().percentile(95.0).lt(600),
+                        details("좋아요/싫어요 반응 (폴링)", "싫어요 선택 (V1)").responseTime().percentile(99.0).lte(1200)
                 )
                 .protocols(httpProtocol);
     }
