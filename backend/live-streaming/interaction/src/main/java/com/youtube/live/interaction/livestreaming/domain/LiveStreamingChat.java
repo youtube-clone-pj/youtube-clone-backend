@@ -6,7 +6,12 @@ import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "live_streaming_chat")
+@Table(
+        name = "live_streaming_chat",
+        indexes = {
+                @Index(name = "idx_livestreaming_id_deleted_date_id", columnList = "live_streaming_id, deleted_date, id")
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLRestriction("deleted_date IS NULL")
