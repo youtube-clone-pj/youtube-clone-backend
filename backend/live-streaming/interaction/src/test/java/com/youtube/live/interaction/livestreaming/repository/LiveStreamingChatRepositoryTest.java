@@ -99,7 +99,8 @@ class LiveStreamingChatRepositoryTest extends IntegrationTest {
         // when
         final List<ChatMessageResponse> result = sut.findNewChatsAfter(
                 liveStreaming.getId(),
-                chats.get(1).getId()
+                chats.get(1).getId(),
+                PageRequest.of(0, 50)
         );
 
         // then

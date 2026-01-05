@@ -12,9 +12,8 @@ import java.util.List;
 public interface LiveStreamingChatRepository extends JpaRepository<LiveStreamingChat, java.lang.Long> {
 
     @Query("SELECT new com.youtube.live.interaction.livestreaming.repository.dto.ChatMessageResponse(" +
-            "c.id, u.username, c.message, c.messageType, u.profileImageUrl, c.createdDate) " +
+            "c.id, c.username, c.message, c.messageType, c.profileImageUrl, c.createdDate) " +
             "FROM LiveStreamingChat c " +
-            "JOIN c.user u " +
             "WHERE c.liveStreaming.id = :livestreamId " +
             "ORDER BY c.createdDate DESC")
     List<ChatMessageResponse> findByLiveStreamingIdOrderByCreatedDateDesc(
@@ -22,15 +21,14 @@ public interface LiveStreamingChatRepository extends JpaRepository<LiveStreaming
             final Pageable pageable
     );
 
-    //TODO limit 제한 고려
     @Query("SELECT new com.youtube.live.interaction.livestreaming.repository.dto.ChatMessageResponse(" +
-            "c.id, u.username, c.message, c.messageType, u.profileImageUrl, c.createdDate) " +
+            "c.id, c.username, c.message, c.messageType, c.profileImageUrl, c.createdDate) " +
             "FROM LiveStreamingChat c " +
-            "JOIN c.user u " +
             "WHERE c.liveStreaming.id = :livestreamId AND c.id > :lastChatId " +
             "ORDER BY c.id ASC")
     List<ChatMessageResponse> findNewChatsAfter(
             @Param("livestreamId") final Long livestreamId,
-            @Param("lastChatId") final Long lastChatId
+            @Param("lastChatId") final Long lastChatId,
+            final Pageable pageable
     );
 }

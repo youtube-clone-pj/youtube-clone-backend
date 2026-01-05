@@ -1,7 +1,6 @@
 package com.youtube.live.interaction.livestreaming.domain;
 
 import com.youtube.core.common.BaseEntity;
-import com.youtube.core.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
@@ -21,9 +20,14 @@ public class LiveStreamingChat extends BaseEntity {
     @JoinColumn(name = "live_streaming_id", nullable = false)
     private LiveStreaming liveStreaming;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @Column(nullable = false)
+    private String username;
+
+    @Column
+    private String profileImageUrl;
 
     @Column(nullable = false)
     private String message;
@@ -33,11 +37,13 @@ public class LiveStreamingChat extends BaseEntity {
     private ChatMessageType messageType;
 
     @Builder
-    private LiveStreamingChat(Long id, LiveStreaming liveStreaming, User user, String message, ChatMessageType messageType) {
+    private LiveStreamingChat(Long id, LiveStreaming liveStreaming, Long userId, String username, String profileImageUrl, String message, ChatMessageType messageType) {
         LiveStreamingChatPolicy.validate(liveStreaming.getStatus());
         this.id = id;
         this.liveStreaming = liveStreaming;
-        this.user = user;
+        this.userId = userId;
+        this.username = username;
+        this.profileImageUrl = profileImageUrl;
         this.message = message;
         this.messageType = messageType;
     }

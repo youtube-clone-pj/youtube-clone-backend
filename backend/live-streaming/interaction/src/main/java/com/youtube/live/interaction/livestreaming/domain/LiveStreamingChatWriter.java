@@ -15,7 +15,9 @@ public class LiveStreamingChatWriter {
                                    final ChatMessageType messageType) {
         final LiveStreamingChat chat = LiveStreamingChat.builder()
                 .liveStreaming(liveStreaming)
-                .user(user)
+                .userId(user.getId())
+                .username(user.getUsername())
+                .profileImageUrl(user.getProfileImageUrl())
                 .message(message)
                 .messageType(messageType)
                 .build();

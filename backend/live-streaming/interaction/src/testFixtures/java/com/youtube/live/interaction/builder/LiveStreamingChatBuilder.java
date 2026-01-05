@@ -28,7 +28,9 @@ public class LiveStreamingChatBuilder {
         return LiveStreamingChat.builder()
                 .id(this.id)
                 .liveStreaming(this.liveStreaming)
-                .user(this.user)
+                .userId(this.user.getId())
+                .username(this.user.getUsername())
+                .profileImageUrl(this.user.getProfileImageUrl())
                 .message(this.message)
                 .messageType(this.messageType)
                 .build();
