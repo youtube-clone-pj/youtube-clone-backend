@@ -72,6 +72,11 @@ public class LiveStreamingViewerManager {
         liveStreamingToStreamer.put(liveStreamingId, streamerUserId);
     }
 
+    public void endLiveStreaming(final Long liveStreamingId) {
+        liveStreamingToViewers.remove(liveStreamingId);
+        liveStreamingToStreamer.remove(liveStreamingId);
+    }
+
     public int getViewerCountExcludingStreamer(final Long liveStreamingId) {
         cleanupExpiredViewers(liveStreamingId);
 

@@ -390,4 +390,53 @@ class LiveStreamingV2ControllerTest extends RestAssuredTest {
         assertThat(response.jsonPath().getString("code")).isEqualTo("AUTH_001");
         assertThat(response.jsonPath().getString("message")).isEqualTo("로그인이 필요합니다");
     }
+
+    @Test
+    @DisplayName("스트리머가 라이브 스트리밍을 종료한다")
+    void endLiveStreaming_ByOwner_ReturnsOk() {
+        // given
+        final Long streamerId = TestAuthSupport.signUp(
+                "streamer@example.com",
+                "스트리머",
+                "password123!"
+        ).as(Long.class);
+
+        final String sessionCookie = TestAuthSupport.login("streamer@example.com", "password123!");
+
+        final User streamer = UserBuilder.User().withId(streamerId).build();
+        final Channel channel = testSupport.save(Channel().withUser(streamer).build());
+        final LiveStreaming liveStreaming = testSupport.save(
+                LiveStreaming()
+                        .withChannel(channel)
+                        .withStatus(LiveStreamingStatus.LIVE)
+                        .build()
+        );
+
+        // when
+        given()
+                .cookie("JSESSIONID", sessionCookie)
+                .when()
+                .post("/api/v2/livestreams/{liveStreamingId}/end", liveStreaming.getId())
+                .then()
+                .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("로그인하지 않은 사용자는 라이브 스트리밍을 종료할 수 없다")
+    void endLiveStreaming_Unauthenticated_Returns401Error() {
+        // given
+        final Long anyLiveStreamingId = 1L;
+
+        // when
+        final ExtractableResponse<Response> response = given()
+                .when()
+                .post("/api/v2/livestreams/{liveStreamingId}/end", anyLiveStreamingId)
+                .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value())
+                .extract();
+
+        // then
+        assertThat(response.jsonPath().getString("code")).isEqualTo("AUTH_001");
+        assertThat(response.jsonPath().getString("message")).isEqualTo("로그인이 필요합니다");
+    }
 }

@@ -25,10 +25,11 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
             final Long userId = (Long) accessor.getSessionAttributes().get("userId");
             final String username = (String) accessor.getSessionAttributes().get("username");
+            final String profileImageUrl = (String) accessor.getSessionAttributes().get("profileImageUrl");
 
             if (userId != null && username != null) {
-                accessor.setUser(new AuthenticatedPrincipal(userId, username));
-            } else if( userId == null && username == null){
+                accessor.setUser(new AuthenticatedPrincipal(userId, username, profileImageUrl));
+            } else if (userId == null && username == null) {
                 accessor.setUser(new UnauthenticatedPrincipal());
             } else {
                 log.error("WebSocket 연결 실패 - sessionId: {}, userId: {}, username 존재 여부: {}",

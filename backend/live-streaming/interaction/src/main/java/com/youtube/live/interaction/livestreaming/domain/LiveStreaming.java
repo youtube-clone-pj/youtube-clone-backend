@@ -32,4 +32,8 @@ public class LiveStreaming extends BaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private LiveStreamingStatus status;
+
+    public void updateStatus(final LiveStreamingStatus newStatus) {
+        this.status = newStatus;
+    }
 }

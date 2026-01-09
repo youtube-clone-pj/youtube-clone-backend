@@ -42,8 +42,12 @@ public class LiveStreamingChat extends BaseEntity {
     private ChatMessageType messageType;
 
     @Builder
-    private LiveStreamingChat(Long id, LiveStreaming liveStreaming, Long userId, String username, String profileImageUrl, String message, ChatMessageType messageType) {
-        LiveStreamingChatPolicy.validate(liveStreaming.getStatus());
+    private LiveStreamingChat(Long id, LiveStreaming liveStreaming, LiveStreamingStatus liveStreamingStatus, Long userId, String username, String profileImageUrl, String message, ChatMessageType messageType) {
+        if (liveStreamingStatus != null) {
+            LiveStreamingChatPolicy.validate(liveStreamingStatus);
+        } else {
+            LiveStreamingChatPolicy.validate(liveStreaming.getStatus());
+        }
         this.id = id;
         this.liveStreaming = liveStreaming;
         this.userId = userId;

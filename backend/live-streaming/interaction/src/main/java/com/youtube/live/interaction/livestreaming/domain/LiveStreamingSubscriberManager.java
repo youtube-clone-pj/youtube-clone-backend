@@ -152,7 +152,6 @@ public class LiveStreamingSubscriberManager {
         liveStreamingToStreamer.put(liveStreamingId, streamerUserId);
     }
 
-    //TODO 라이브 스트리밍 종료 API 구현 시 호출 필요 (메모리 누수 방지)
     public void unregisterStreamer(final Long liveStreamingId) {
         liveStreamingToStreamer.remove(liveStreamingId);
     }
