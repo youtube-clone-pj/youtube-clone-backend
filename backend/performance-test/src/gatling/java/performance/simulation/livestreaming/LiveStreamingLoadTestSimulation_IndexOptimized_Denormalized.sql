@@ -109,6 +109,10 @@ CREATE TABLE subscription (
                               UNIQUE KEY uk_subscriber_channel (subscriber_id, channel_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 성능 최적화를 위한 복합 인덱스 (LiveStreamingRepository.findMetadataById 쿼리 튜닝)
+-- 복합 인덱스 생성 (channel_id + deleted_date)
+CREATE INDEX idx_subscription_channel_id_deleted_date ON subscription (channel_id, deleted_date);
+
 -- live_streaming 테이블
 CREATE TABLE live_streaming (
                                 id BIGINT PRIMARY KEY AUTO_INCREMENT,
