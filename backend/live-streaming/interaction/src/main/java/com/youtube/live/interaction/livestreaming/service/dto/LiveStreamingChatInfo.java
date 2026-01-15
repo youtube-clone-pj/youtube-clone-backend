@@ -25,4 +25,15 @@ public class LiveStreamingChatInfo {
     {
         return new LiveStreamingChatInfo(user.getUsername(), message, chatMessageType, user.getProfileImageUrl(), timestamp);
     }
+
+    public static LiveStreamingChatInfo of(
+            final Long userId,
+            final String username,
+            final String profileImageUrl,
+            final String message,
+            final ChatMessageType chatMessageType,
+            final Instant timestamp)
+    {
+        return new LiveStreamingChatInfo(username, message, chatMessageType, profileImageUrl, timestamp);
+    }
 }

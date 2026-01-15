@@ -54,6 +54,7 @@ public class WebSocketChatController {
     ) {
         final Long userId = loginUser.getUserId();
         final String username = loginUser.getUsername();
+        final String profileImageUrl = loginUser.getProfileImageUrl();
 
         final LiveStreamingChatInfo savedChatInfo = liveStreamingChatService.sendMessage(
                 livestreamId,
@@ -68,7 +69,7 @@ public class WebSocketChatController {
                 username,
                 chatMessageRequest.getMessage(),
                 chatMessageRequest.getChatMessageType(),
-                savedChatInfo.getUserProfileImageUrl(),
+                profileImageUrl,
                 Instant.now()
         );
     }

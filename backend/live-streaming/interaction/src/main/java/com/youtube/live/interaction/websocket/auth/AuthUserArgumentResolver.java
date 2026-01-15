@@ -41,7 +41,11 @@ public class AuthUserArgumentResolver implements HandlerMethodArgumentResolver {
 
         if (principal instanceof AuthenticatedPrincipal) {
             final AuthenticatedPrincipal authenticatedPrincipal = (AuthenticatedPrincipal) principal;
-            return new LoginUser(authenticatedPrincipal.getUserId(), authenticatedPrincipal.getUsername());
+            return new LoginUser(
+                    authenticatedPrincipal.getUserId(),
+                    authenticatedPrincipal.getUsername(),
+                    authenticatedPrincipal.getProfileImageUrl()
+            );
         }
 
         log.error("예상하지 못한 Principal 타입 - type: {}", principal != null ? principal.getClass().getName() : "null");

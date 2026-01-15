@@ -17,6 +17,8 @@
 -- =====================================================
 -- 외래키 체크를 임시로 비활성화하여 순서 상관없이 삭제 가능하게 함
 
+USE youtube;
+
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- TRUNCATE를 사용하여 빠르게 삭제 및 AUTO_INCREMENT 초기화
@@ -205,9 +207,9 @@ WITH RECURSIVE user_seq AS (
     SELECT n + 1 FROM user_seq WHERE n < 100000
 )
 SELECT
-    CONCAT('user', LPAD(n, 6, '0')) AS username,
-    '$2a$10$dummypasswordhash1234567890123456789012345678901234' AS password,  -- BCrypt 형식
-    CONCAT('user', LPAD(n, 6, '0'), '@loadtest.com') AS email,
+    CONCAT('loadtest', n) AS username,
+    '$2a$10$/8/Po2Smfk0RyyVeHW4r6u2Xzpnh/Drw81HjpJZo1Q/4LrA0zj8qK' AS password,  -- BCrypt 해시: password123
+    CONCAT('loadtest', n, '@test.com') AS email,
     CONCAT('https://storage.youtube.com/profile/', n, '.jpg') AS profile_image_url,
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 365) DAY) AS created_date,
     NOW() AS last_modified_date
@@ -413,11 +415,12 @@ SELECT
     (FLOOR(RAND() * 100000) + 1) AS user_id,  -- 랜덤 유저
     CONCAT('채팅 메시지 #', cs.n, ' - 라이브 ', ls.id) AS message,
     'CHAT' AS message_type,
-    DATE_ADD(ls.created_date, INTERVAL FLOOR(RAND() * 3600) SECOND) AS created_date,
+    DATE_SUB(NOW(), INTERVAL (24 + FLOOR(RAND() * 696)) HOUR) AS created_date,
     NOW() AS last_modified_date
 FROM chat_seq cs
 CROSS JOIN live_streaming ls
-WHERE ls.channel_id BETWEEN 1 AND 10;
+WHERE ls.channel_id BETWEEN 1 AND 10
+    AND ls.id != 1;  -- 성능 테스트용 LIVE 스트리밍(id=1) 제외
 
 COMMIT;
 
@@ -435,11 +438,12 @@ SELECT
     (FLOOR(RAND() * 100000) + 1) AS user_id,
     CONCAT('채팅 메시지 #', cs.n, ' - 라이브 ', ls.id) AS message,
     'CHAT' AS message_type,
-    DATE_ADD(ls.created_date, INTERVAL FLOOR(RAND() * 3600) SECOND) AS created_date,
+    DATE_SUB(NOW(), INTERVAL (24 + FLOOR(RAND() * 696)) HOUR) AS created_date,
     NOW() AS last_modified_date
 FROM chat_seq cs
 CROSS JOIN live_streaming ls
-WHERE ls.channel_id BETWEEN 11 AND 110;
+WHERE ls.channel_id BETWEEN 11 AND 110
+    AND ls.id != 1;  -- 성능 테스트용 LIVE 스트리밍(id=1) 제외
 
 COMMIT;
 
@@ -457,11 +461,12 @@ SELECT
     (FLOOR(RAND() * 100000) + 1) AS user_id,
     CONCAT('채팅 메시지 #', cs.n, ' - 라이브 ', ls.id) AS message,
     'CHAT' AS message_type,
-    DATE_ADD(ls.created_date, INTERVAL FLOOR(RAND() * 3600) SECOND) AS created_date,
+    DATE_SUB(NOW(), INTERVAL (24 + FLOOR(RAND() * 696)) HOUR) AS created_date,
     NOW() AS last_modified_date
 FROM chat_seq cs
 CROSS JOIN live_streaming ls
-WHERE ls.channel_id BETWEEN 111 AND 1110;
+WHERE ls.channel_id BETWEEN 111 AND 1110
+    AND ls.id != 1;  -- 성능 테스트용 LIVE 스트리밍(id=1) 제외
 
 COMMIT;
 

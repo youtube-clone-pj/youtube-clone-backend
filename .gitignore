@@ -59,3 +59,5 @@ logs/
 *.swp
 *.swo
 *~
+
+issue-solution-docs/loadtest-live-polling/report/

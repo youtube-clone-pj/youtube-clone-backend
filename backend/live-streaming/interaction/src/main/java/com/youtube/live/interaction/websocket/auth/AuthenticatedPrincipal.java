@@ -11,6 +11,7 @@ public class AuthenticatedPrincipal implements Principal {
 
     private final Long userId;
     private final String username;
+    private final String profileImageUrl;
 
     @Override
     public String getName() {

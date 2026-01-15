@@ -15,6 +15,7 @@ public class AuthController {
     private final AuthService authService;
     private static final String SESSION_USER_ID = "userId";
     private static final String SESSION_USERNAME = "username";
+    private static final String SESSION_PROFILE_IMAGE_URL = "profileImageUrl";
 
     @PostMapping("/users")
     public ResponseEntity<Long> signUp(@RequestBody RegisterRequest request) {
@@ -27,6 +28,7 @@ public class AuthController {
         final LoginResponse response = authService.login(request);
         session.setAttribute(SESSION_USER_ID, response.getUserId());
         session.setAttribute(SESSION_USERNAME, response.getUsername());
+        session.setAttribute(SESSION_PROFILE_IMAGE_URL, response.getProfileImageUrl());
 
         return ResponseEntity.ok(response);
     }

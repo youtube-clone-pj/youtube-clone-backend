@@ -35,6 +35,8 @@ public class LiveStreamingV2Controller {
     private final LiveStreamingChatQueryService liveStreamingChatQueryService;
     private final LiveStreamingChatService liveStreamingChatService;
     private static final String SESSION_USER_ID = "userId";
+    private static final String SESSION_USERNAME = "username";
+    private static final String SESSION_PROFILE_IMAGE_URL = "profileImageUrl";
     private static final String SESSION_CLIENT_ID = "clientId";
 
     @PostMapping
@@ -108,13 +110,18 @@ public class LiveStreamingV2Controller {
             final HttpSession session
     ) {
         final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
-        if (userId == null) {
+        final String username = (String) session.getAttribute(SESSION_USERNAME);
+        final String profileImageUrl = (String) session.getAttribute(SESSION_PROFILE_IMAGE_URL);
+        
+        if (userId == null || username == null) {
             throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
         }
 
         final LiveStreamingChatInfo chatInfo = liveStreamingChatService.sendMessage(
                 liveStreamingId,
                 userId,
+                username,
+                profileImageUrl,
                 request.getMessage(),
                 request.getChatMessageType(),
                 Instant.now()
@@ -123,12 +130,21 @@ public class LiveStreamingV2Controller {
         return ResponseEntity.status(HttpStatus.CREATED).body(chatInfo);
     }
 
-    /**
-     * 세션에서 clientId를 가져오거나 새로 생성
-     *
-     * clientId는 비로그인 사용자를 식별하기 위한 서버 생성 고유 ID입니다.
-     * 세션에 한 번 생성되면 세션이 유지되는 동안 재사용됩니다.
-     */
+    @PostMapping("/{liveStreamingId}/end")
+    public ResponseEntity<Void> endLiveStreaming(
+            @PathVariable final Long liveStreamingId,
+            final HttpSession session
+    ) {
+        final Long userId = (Long) session.getAttribute(SESSION_USER_ID);
+        if (userId == null) {
+            throw new BaseException(AuthErrorCode.LOGIN_REQUIRED);
+        }
+
+        liveStreamingService.endLiveStreaming(liveStreamingId, userId);
+
+        return ResponseEntity.ok().build();
+    }
+
     private String getOrCreateClientId(final HttpSession session) {
         String clientId = (String) session.getAttribute(SESSION_CLIENT_ID);
         if (clientId == null) {

@@ -234,4 +234,28 @@ class LiveStreamingViewerManagerTest {
 
         assertThat(sut.getViewerCountExcludingStreamer(livestreamId)).isEqualTo(1);
     }
+
+    @Test
+    @DisplayName("라이브 스트리밍이 종료되면 시청자와 스트리머 정보가 모두 제거된다")
+    void endLiveStreaming_ClearsAllData() {
+        // given
+        final Long livestreamId = 1L;
+        final Long streamerUserId = 1L;
+        final String streamerClientId = "client-streamer";
+        final String clientId1 = "client-1";
+        final String clientId2 = "client-2";
+        final Long userId1 = 2L;
+        final Long userId2 = 3L;
+
+        sut.registerStreamer(livestreamId, streamerUserId);
+        sut.recordHeartbeat(livestreamId, streamerClientId, streamerUserId);
+        sut.recordHeartbeat(livestreamId, clientId1, userId1);
+        sut.recordHeartbeat(livestreamId, clientId2, userId2);
+
+        // when
+        sut.endLiveStreaming(livestreamId);
+
+        // then
+        assertThat(sut.getViewerCountExcludingStreamer(livestreamId)).isEqualTo(0);
+    }
 }

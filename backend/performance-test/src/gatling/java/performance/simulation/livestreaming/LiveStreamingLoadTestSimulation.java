@@ -9,14 +9,14 @@ import static io.gatling.javaapi.http.HttpDsl.Cookie;
 import static io.gatling.javaapi.http.HttpDsl.addCookie;
 import static performance.groups.LiveStreamingScenarioGroups.*;
 import static performance.groups.WebSocketScenarioGroups.*;
-import static performance.utils.ChatTestDataFeeder.createChatBehaviorFeeder;
 import static performance.utils.Protocols.httpProtocol;
 import static performance.utils.SessionManager.loadSessionFeeder;
 import static performance.utils.TestDataFeeder.createBehaviorFeeder;
 
 /**
- * Phase 5: 라이브 스트리밍 부하 주입 패턴 성능 테스트
+ * Phase 5: 라이브 스트리밍 WebSocket 방식 부하 테스트
  * <p>
+ * WebSocket을 사용하여 실시간 데이터를 수신하는 성능 테스트입니다.
  * 5만 명의 점진적 유입을 시뮬레이션하여 시스템의 한계를 파악하고
  * 병목 지점을 식별하는 것을 목표로 합니다.
  * <p>
@@ -26,16 +26,18 @@ import static performance.utils.TestDataFeeder.createBehaviorFeeder;
  * - 생성된 세션 파일의 사용자 수 >= TOTAL_USERS * AUTH_RATIO
  * <p>
  * 단계적 부하 증가 전략:
- * 1. 소규모 테스트 (100명, 1분) - 시나리오 동작 확인
- * 2. 중규모 테스트 (1,000명, 5분) - 병목 지점 초기 파악
- * 3. 대규모 테스트 (10,000명, 10분) - 시스템 한계 탐색
- * 4. 목표 테스트 (50,000명, 20분) - 실제 시나리오 시뮬레이션
+ * 1. 소규모 테스트 (100명) - 시나리오 동작 확인
+ * 2. 중규모 테스트 (1,000명) - 병목 지점 초기 파악
+ * 3. 대규모 테스트 (10,000명) - 시스템 한계 탐색
+ * 4. 목표 테스트 (50,000명) - 실제 시나리오 시뮬레이션
  * 5. 스트레스 테스트 (75,000~100,000명) - 시스템 한계점 확인 (선택)
  * <p>
- * 부하 주입 패턴:
- * - spike: 모든 사용자 즉시 주입 (기본값)
- * - ramp: 선형적으로 점진 증가
- * - realistic: 초기 급증 + 점진 감소 (실제 트래픽 패턴)
+ * 부하 주입 패턴 (realistic):
+ * - 인기 스트리머의 라이브 스트리밍 시작 시 발생하는 실제 트래픽 패턴을 시뮬레이션
+ * - 첫 1분: 0 → 초당 300명으로 급증 (알림을 받고 바로 접속)
+ * - 1~2분: 초당 300명 유지 (피크 구간)
+ * - 2~4분: 초당 300명 → 100명으로 감소 (점진적 안정화)
+ * - 4~5분: 초당 100명 유지 (안정화 구간)
  * <p>
  * 실행 예시:
  * <pre>
@@ -44,30 +46,30 @@ import static performance.utils.TestDataFeeder.createBehaviorFeeder;
  *   --simulation=performance.simulation.session.SessionSetupSimulation \
  *   -DtotalUsers=50000
  *
- * # 1단계: 소규모 테스트 (100명, spike)
+ * # 1단계: 소규모 테스트 (100명)
  * ./gradlew :performance-test:gatlingRun \
  *   --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation \
- *   -DtotalUsers=100 -Dpattern=spike
+ *   -DtotalUsers=100
  *
- * # 2단계: 중규모 테스트 (1,000명, ramp 5분)
+ * # 2단계: 중규모 테스트 (1,000명)
  * ./gradlew :performance-test:gatlingRun \
  *   --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation \
- *   -DtotalUsers=1000 -Dpattern=ramp -DrampDuration=300
+ *   -DtotalUsers=1000
  *
- * # 3단계: 대규모 테스트 (10,000명, ramp 10분)
+ * # 3단계: 대규모 테스트 (10,000명)
  * ./gradlew :performance-test:gatlingRun \
  *   --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation \
- *   -DtotalUsers=10000 -Dpattern=ramp -DrampDuration=600
+ *   -DtotalUsers=10000
  *
- * # 4단계: 목표 테스트 (50,000명, realistic 패턴)
+ * # 4단계: 목표 테스트 (50,000명)
  * ./gradlew :performance-test:gatlingRun \
  *   --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation \
- *   -DtotalUsers=50000 -Dpattern=realistic
+ *   -DtotalUsers=50000
  *
- * # 5단계: 스트레스 테스트 (100,000명, realistic 패턴)
+ * # 5단계: 스트레스 테스트 (100,000명)
  * ./gradlew :performance-test:gatlingRun \
  *   --simulation=performance.simulation.livestreaming.LiveStreamingLoadTestSimulation \
- *   -DtotalUsers=100000 -Dpattern=realistic
+ *   -DtotalUsers=100000
  * </pre>
  */
 public class LiveStreamingLoadTestSimulation extends Simulation {
@@ -87,25 +89,6 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
      * 시스템 프로퍼티로 조절 가능: -DauthRatio=0.8
      */
     private static final double AUTH_RATIO = Double.parseDouble(System.getProperty("authRatio", "0.7"));
-
-    /**
-     * 부하 주입 패턴 (기본값: spike)
-     * <p>
-     * 사용 가능한 패턴:
-     * - spike: 모든 사용자 즉시 주입
-     * - ramp: 선형적으로 점진 증가
-     * - realistic: 초기 급증 + 점진 감소
-     * <p>
-     * 시스템 프로퍼티로 조절 가능: -Dpattern=realistic
-     */
-    private static final String PATTERN = System.getProperty("pattern", "spike");
-
-    /**
-     * Ramp 패턴 지속 시간 (초, 기본값: 300초 = 5분)
-     * <p>
-     * 시스템 프로퍼티로 조절 가능: -DrampDuration=600
-     */
-    private static final int RAMP_DURATION = Integer.getInteger("rampDuration", 300);
 
     /**
      * 최소 세션 지속 시간 (초, 기본값: 360초 = 6분)
@@ -128,7 +111,7 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
     // ==================== 시나리오 정의 ====================
 
     /**
-     * 인증 사용자 시나리오
+     * 인증 사용자 시나리오 (WebSocket 방식)
      * <p>
      * 실행 흐름:
      * 1. 세션 파일에서 사전 생성된 세션 로드 (userId, email, username, sessionId)
@@ -137,26 +120,24 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
      * 4. WebSocket 연결 및 구독 (채팅, 시청자 수, 좋아요 수 브로드캐스트 수신)
      * 5. pause(1~3초) - 화면 로딩
      * 6. 좋아요/싫어요 반응 (10% 확률로 반응, 그 중 95% 좋아요, 5% 싫어요)
-     * 7. 초기 활발한 채팅 (5분)
-     * 8. 안정화된 채팅 (나머지 시간)
-     * 9. 연결 종료
+     * 7. 세션 동안 채팅 전송 (초기 5분: 10% 확률, 이후: 4% 확률)
+     * 8. 연결 종료
      */
-    private static final ScenarioBuilder authenticatedScenario = scenario("인증 사용자 라이브 스트리밍 시나리오")
+    private static final ScenarioBuilder authenticatedScenario = scenario("인증 사용자 라이브 스트리밍 시나리오 (WebSocket)")
             .feed(loadSessionFeeder())
-            .feed(createChatBehaviorFeeder(MIN_SESSION_DURATION, MAX_SESSION_DURATION))
+            .feed(createBehaviorFeeder(MIN_SESSION_DURATION, MAX_SESSION_DURATION))
             .exec(
                     addCookie(Cookie("JSESSIONID", "#{sessionId}").withPath("/")),
                     fetchMetadata,
                     connectAndSubscribe,
                     pause(1, 3),
                     reactToStream,
-                    sendInitialChats,
-                    sendNormalChats,
+                    authenticatedUserWebSocketBehavior,
                     disconnect
             );
 
     /**
-     * 비인증 사용자 시나리오
+     * 비인증 사용자 시나리오 (WebSocket 방식)
      * <p>
      * 실행 흐름:
      * 1. 메타데이터 조회 (라이브 스트리밍 정보 확인, 로그인 없이)
@@ -165,7 +146,7 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
      * 4. 연결 유지 (세션 시간 동안 다른 사용자의 채팅 수신)
      * 5. 연결 종료
      */
-    private static final ScenarioBuilder unauthenticatedScenario = scenario("비인증 사용자 라이브 스트리밍 시나리오")
+    private static final ScenarioBuilder unauthenticatedScenario = scenario("비인증 사용자 라이브 스트리밍 시나리오 (WebSocket)")
             .feed(createBehaviorFeeder(MIN_SESSION_DURATION, MAX_SESSION_DURATION))
             .exec(
                     fetchMetadata,
@@ -179,16 +160,14 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
 
     /**
      * 부하 주입 프로파일 생성
+     * <p>
+     * realistic 패턴을 사용하여 실제 트래픽 패턴을 시뮬레이션합니다.
      *
      * @param userCount 사용자 수
      * @return 부하 주입 스텝 배열
      */
     private static OpenInjectionStep[] createInjectionProfile(final int userCount) {
-        return switch (PATTERN) {
-            case "ramp" -> new OpenInjectionStep[]{rampUsers(userCount).during(RAMP_DURATION)};
-            case "realistic" -> createRealisticProfile(userCount);
-            default -> new OpenInjectionStep[]{atOnceUsers(userCount)}; // spike (기본값)
-        };
+        return createRealisticProfile(userCount);
     }
 
     /**
@@ -229,17 +208,15 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
 
     {
         System.out.println("========================================");
-        System.out.println("  라이브 스트리밍 부하 테스트 시작");
+        System.out.println("  라이브 스트리밍 WebSocket 부하 테스트 시작");
         System.out.println("========================================");
         System.out.println("총 사용자 수: " + TOTAL_USERS);
         System.out.println("인증 사용자: " + AUTH_USERS + " (" + (int) (AUTH_RATIO * 100) + "%)");
         System.out.println("비인증 사용자: " + UNAUTH_USERS + " (" + (int) ((1 - AUTH_RATIO) * 100) + "%)");
-        System.out.println("부하 주입 패턴: " + PATTERN);
-        if ("ramp".equals(PATTERN)) {
-            System.out.println("램프 지속 시간: " + RAMP_DURATION + "초");
-        }
+        System.out.println("부하 주입 패턴: realistic (초기 급증 + 점진 감소)");
         System.out.println("세션 지속 시간: " + MIN_SESSION_DURATION + "~" + MAX_SESSION_DURATION + "초");
         System.out.println("세션 파일: " + performance.utils.SessionManager.getSessionFilePath());
+        System.out.println("통신 방식: WebSocket (STOMP)");
         System.out.println("========================================");
 
         setUp(
@@ -247,10 +224,27 @@ public class LiveStreamingLoadTestSimulation extends Simulation {
                 unauthenticatedScenario.injectOpen(createInjectionProfile(UNAUTH_USERS))
         )
                 .assertions(
+                        // ========== 전역 검증 ==========
                         // 에러율 < 1%
                         global().failedRequests().percent().lt(1.0),
-                        // 95 percentile 응답 시간 < 2초
-                        global().responseTime().percentile3().lt(2000)
+
+                        // 입장 시 한 번만 호출
+                        details("메타데이터 조회", "라이브 스트리밍 메타데이터 조회").responseTime().percentile(95.0).lt(300),
+                        details("메타데이터 조회", "라이브 스트리밍 메타데이터 조회").responseTime().percentile(99.0).lte(600),
+
+                        // WebSocket SEND부터 브로드캐스트 수신까지 (확률 기반 채팅)
+                        details("인증 사용자 행동 (확률 기반 채팅)", "채팅 메시지 전송 및 브로드캐스트 수신").responseTime().percentile(95.0).lt(150),
+                        details("인증 사용자 행동 (확률 기반 채팅)", "채팅 메시지 전송 및 브로드캐스트 수신").responseTime().percentile(99.0).lte(300),
+
+                        // WebSocket 구독 시 초기 메시지 수신
+                        details("WebSocket 연결 및 구독", "초기 메시지 확인").responseTime().percentile(95.0).lt(500),
+                        details("WebSocket 연결 및 구독", "초기 메시지 확인").responseTime().percentile(99.0).lte(1000),
+
+                        // 인증 사용자의 좋아요/싫어요
+                        details("좋아요/싫어요 반응", "좋아요 선택").responseTime().percentile(95.0).lt(600),
+                        details("좋아요/싫어요 반응", "좋아요 선택").responseTime().percentile(99.0).lte(1200),
+                        details("좋아요/싫어요 반응", "싫어요 선택").responseTime().percentile(95.0).lt(600),
+                        details("좋아요/싫어요 반응", "싫어요 선택").responseTime().percentile(99.0).lte(1200)
                 )
                 .protocols(httpProtocol);
     }

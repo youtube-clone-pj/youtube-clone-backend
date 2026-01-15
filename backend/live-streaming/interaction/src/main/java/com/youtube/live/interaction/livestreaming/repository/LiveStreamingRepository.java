@@ -1,12 +1,18 @@
 package com.youtube.live.interaction.livestreaming.repository;
 
 import com.youtube.live.interaction.livestreaming.domain.LiveStreaming;
+import com.youtube.live.interaction.livestreaming.domain.LiveStreamingStatus;
 import com.youtube.live.interaction.livestreaming.repository.dto.LiveStreamingMetadataResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface LiveStreamingRepository extends JpaRepository<LiveStreaming, Long> {
+
+    @Query("SELECT ls.status FROM LiveStreaming ls WHERE ls.id = :liveStreamingId")
+    Optional<LiveStreamingStatus> findStatusById(@Param("liveStreamingId") final Long liveStreamingId);
 
     @Query("""
     SELECT new com.youtube.live.interaction.livestreaming.repository.dto.LiveStreamingMetadataResponse(

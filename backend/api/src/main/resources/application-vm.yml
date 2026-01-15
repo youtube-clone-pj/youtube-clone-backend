@@ -22,6 +22,10 @@ management:
       tomcat: true
     tags:
       application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        hikaricp.connections.acquire: true
   prometheus:
     metrics:
       export:

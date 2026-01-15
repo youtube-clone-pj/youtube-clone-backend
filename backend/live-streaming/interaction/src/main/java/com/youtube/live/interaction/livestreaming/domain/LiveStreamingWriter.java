@@ -5,6 +5,7 @@ import com.youtube.live.interaction.livestreaming.repository.LiveStreamingReposi
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -32,5 +33,12 @@ public class LiveStreamingWriter {
                 liveStreaming.getId(), liveStreaming.getChannel().getId());
 
         return liveStreamingRepository.save(liveStreaming);
+    }
+
+    @Transactional
+    public void updateStatus(final LiveStreaming liveStreaming, final LiveStreamingStatus newStatus) {
+        liveStreaming.updateStatus(newStatus);
+        log.info("LiveStreaming 상태 변경 - liveStreamingId: {}, newStatus: {}",
+                liveStreaming.getId(), newStatus);
     }
 }

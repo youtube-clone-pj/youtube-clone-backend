@@ -9,4 +9,5 @@ public class LoginUser {
 
     private final Long userId;
     private final String username;
+    private final String profileImageUrl;
 }

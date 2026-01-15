@@ -19,13 +19,44 @@ public class LiveStreamingChatService {
     private final LiveStreamingChatWriter liveStreamingChatWriter;
 
     @Transactional
-    public LiveStreamingChatInfo sendMessage(final Long liveStreamingId, final Long userId, final String message,
-                                             final ChatMessageType messageType, final Instant now) {
+    public LiveStreamingChatInfo sendMessage(
+            final Long liveStreamingId,
+            final Long userId,
+            final String message,
+            final ChatMessageType messageType,
+            final Instant now
+    ) {
         final LiveStreaming liveStreaming = liveStreamingReader.readBy(liveStreamingId);
         final User user = userReader.readBy(userId);
 
         liveStreamingChatWriter.write(liveStreaming, user, message, messageType);
 
         return LiveStreamingChatInfo.of(user, message, messageType, now);
+    }
+
+    @Transactional
+    public LiveStreamingChatInfo sendMessage(
+            final Long liveStreamingId,
+            final Long userId,
+            final String username,
+            final String profileImageUrl,
+            final String message,
+            final ChatMessageType messageType,
+            final Instant now
+    ) {
+        final LiveStreamingStatus status = liveStreamingReader.readCachedStatusBy(liveStreamingId);
+        final LiveStreaming liveStreaming = liveStreamingReader.getReferenceBy(liveStreamingId);
+
+        liveStreamingChatWriter.write(
+                liveStreaming,
+                status,
+                userId,
+                username,
+                profileImageUrl,
+                message,
+                messageType
+        );
+
+        return LiveStreamingChatInfo.of(userId, username, profileImageUrl, message, messageType, now);
     }
 }
