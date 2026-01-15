@@ -1,0 +1,12 @@
+graph LR
+subgraph LaptopA["노트북 A"]
+VM1["VM1 (WAS)<br/>2 vCPU, 4GB RAM"]
+VM2["VM2 (DB)<br/>2 vCPU, 4GB RAM"]
+end
+
+subgraph LaptopB["노트북 B"]
+VM3["VM3 (부하생성기)<br/>16 vCPU, 16GB RAM"]
+end
+
+VM3 -->|부하 발생| VM1
+VM1 --> VM2
